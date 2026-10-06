@@ -1,11 +1,12 @@
 import React from "react";
-import Homepage from "./pages/Homepage";
+
 import MyRoutes from "./MyRoutes";
+import Layout from "./components/layout/Layout";
+import Footer from "./components/layout/Footer";
 
 const App = () => {
   return (
     <>
-      <Homepage />
       <MyRoutes />
     </>
   );

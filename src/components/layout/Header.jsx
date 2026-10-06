@@ -12,11 +12,7 @@ const Header = () => {
           className="min-w-9 inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
         >
           <span className="sr-only">Your Company</span>
-          <img
-            src="https://readymadeui.com/logo-alt.svg"
-            alt="readymadeui logo"
-            className="h-9 w-auto"
-          />
+          <h1 style={{ fontWeight: "bold", color: "white" }}>E-LearnersHub</h1>
         </a>
 
         <div
@@ -56,50 +52,6 @@ const Header = () => {
               </svg>
             </button>
           </div>
-
-          <ul className="flex flex-col gap-8 font-semibold text-sm text-slate-900 dark:text-slate-50 lg:flex-row max-lg:p-6">
-            <li>
-              <a
-                href="#"
-                className="hover:text-blue-700 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-                aria-current="page"
-              >
-                Home
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-blue-700 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-              >
-                Features
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-blue-700 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-              >
-                Blog
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-blue-700 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-              >
-                About
-              </a>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="hover:text-blue-700 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
-              >
-                Contact
-              </a>
-            </li>
-          </ul>
         </div>
 
         <div className="flex items-center gap-4">
@@ -131,11 +83,6 @@ const Header = () => {
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                fill-rule="evenodd"
-                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clip-rule="evenodd"
-              ></path>
             </svg>
           </button>
         </div>
