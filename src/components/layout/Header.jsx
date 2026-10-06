@@ -1,9 +1,7 @@
-import React from "react";
-
 const Header = () => {
   return (
     <nav
-      className="flex py-2 px-4 md:px-8 bg-white border-b border-slate-300 dark:border-neutral-700 dark:bg-neutral-900 min-h-[68px] relative z-20"
+      className="relative z-20 flex min-h-[68px] border-b border-slate-800 bg-slate-900 px-4 py-2 md:px-8"
       aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 w-full">
@@ -11,26 +9,23 @@ const Header = () => {
           href="#"
           className="min-w-9 inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
         >
-          <span className="sr-only">Your Company</span>
-          <h1 style={{ fontWeight: "bold", color: "white" }}>E-LearnersHub</h1>
+          <span className="sr-only">E-LearnersHub</span>
+          <h1 className="font-bold text-white">E-LearnersHub</h1>
         </a>
 
         <div
           id="collapseMenu"
           tabindex="-1"
-          className="hidden lg:block max-lg:bg-white dark:max-lg:bg-neutral-900 max-lg:border-l max-lg:border-slate-300 dark:max-lg:border-neutral-700 max-lg:w-1/2 max-lg:fixed max-lg:top-0 max-lg:right-0 max-lg:h-full max-lg:shadow-md max-lg:overflow-auto max-sm:w-full z-50 outline-none"
+          className="hidden outline-none max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:z-50 max-lg:h-full max-lg:w-1/2 max-lg:overflow-auto max-lg:border-l max-lg:border-slate-700 max-lg:bg-slate-900 max-lg:shadow-md max-sm:w-full lg:block"
         >
-          <div className="py-2 px-4 flex justify-between items-center border-b border-slate-300 sticky top-0 bg-white dark:border-neutral-700 dark:bg-neutral-900 lg:hidden max-lg:min-h-[68px]">
+          <div className="sticky top-0 flex items-center justify-between border-b border-slate-700 bg-slate-900 px-4 py-2 max-lg:min-h-[68px] lg:hidden">
             <a
               href="#"
               className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
             >
-              <span className="sr-only">Your Company</span>
-              <img
-                src="https://readymadeui.com/logo-alt.svg"
-                alt="readymadeui logo dialog"
-                className="h-9 w-auto"
-              />
+              <span className="text-base font-bold text-white">
+                E-LearnersHub
+              </span>
             </a>
             <button
               type="button"
@@ -41,7 +36,7 @@ const Header = () => {
               <span className="sr-only">Close main menu</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="size-4 fill-slate-900 dark:fill-slate-50"
+                className="size-4 fill-slate-50"
                 aria-hidden="true"
                 viewBox="0 0 329.269 329"
               >
@@ -57,7 +52,7 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <a
             href="#"
-            className="text-slate-900 text-sm font-semibold hover:text-blue-700 dark:text-slate-50 dark:hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+            className="rounded text-sm font-semibold text-white hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             Log in
           </a>
@@ -82,8 +77,7 @@ const Header = () => {
               aria-hidden="true"
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
-            >
-            </svg>
+            ></svg>
           </button>
         </div>
       </div>
