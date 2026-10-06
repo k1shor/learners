@@ -1,9 +1,25 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const Header = () => {
+const Header = ({ studentMode = false }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  const authButtons = isLoggedIn ? (
+  const authButtons = studentMode ? (
+    <div className="flex items-center gap-2">
+      <Link
+        to="/student-dashboard"
+        className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700 sm:px-4"
+      >
+        My Courses
+      </Link>
+      <Link
+        to="/"
+        className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-gray-100 sm:px-4"
+      >
+        Logout
+      </Link>
+    </div>
+  ) : isLoggedIn ? (
     <div className="flex items-center gap-2">
       <button className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition sm:px-4">
         My Courses
@@ -33,8 +49,8 @@ const Header = () => {
   )
 
   return (
-    <header className="bg-white fixed w-full z-20 top-0 start-0 border-b border-gray-200 shadow-sm">
-      <nav className="max-w-screen-xl mx-auto flex items-center justify-between p-4 gap-3 sm:gap-4">
+    <header className="bg-white fixed w-full z-20 top-0 inset-s-0 border-b border-gray-200 shadow-sm">
+      <nav className="max-w-7xl mx-auto flex items-center justify-between p-4 gap-3 sm:gap-4">
         <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse min-w-0">
           <img
             src="https://flowbite.com/docs/images/logo.svg"
