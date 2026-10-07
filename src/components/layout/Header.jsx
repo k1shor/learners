@@ -1,4 +1,4 @@
-const Header = () => {
+const Header = ({ isLoggedIn, onLogin, onLogout }) => {
   return (
     <nav
       className="relative z-20 flex min-h-[68px] border-b border-slate-800 bg-slate-900 px-4 py-2 md:px-8"
@@ -50,12 +50,23 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <a
-            href="#"
-            className="rounded text-sm font-semibold text-white hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
-            Log in
-          </a>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded text-sm font-semibold text-white hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Log out
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="rounded text-sm font-semibold text-white hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Log in
+            </button>
+          )}
           <a
             href="#"
             className="py-2 px-3.5 text-sm rounded-md font-semibold cursor-pointer text-white border border-blue-600 bg-blue-600 hover:bg-blue-700 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
