@@ -1,9 +1,6 @@
-import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const Header = ({ studentMode = false }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-
   const authButtons = studentMode ? (
     <div className="flex items-center gap-2">
       <Link
@@ -19,32 +16,20 @@ const Header = ({ studentMode = false }) => {
         Logout
       </Link>
     </div>
-  ) : isLoggedIn ? (
-    <div className="flex items-center gap-2">
-      <button className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition sm:px-4">
-        My Courses
-      </button>
-      <button
-        onClick={() => setIsLoggedIn(false)}
-        className="px-3 py-2 text-sm rounded-md border border-gray-300 text-slate-700 font-medium hover:bg-gray-100 transition sm:px-4"
-      >
-        Logout
-      </button>
-    </div>
   ) : (
     <div className="flex items-center gap-2">
-      <button
-        onClick={() => setIsLoggedIn(true)}
+      <Link
+        to="/login"
         className="px-3 py-2 text-sm rounded-md border border-blue-600 text-blue-600 font-medium hover:bg-blue-50 transition sm:px-4"
       >
         Login
-      </button>
-      <button
-        onClick={() => setIsLoggedIn(true)}
+      </Link>
+      <Link
+        to="/signin"
         className="px-3 py-2 text-sm rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition sm:px-4"
       >
         Sign Up
-      </button>
+      </Link>
     </div>
   )
 

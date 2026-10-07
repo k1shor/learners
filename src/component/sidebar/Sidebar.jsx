@@ -1,7 +1,9 @@
+import { NavLink } from 'react-router-dom'
+
 const navigationItems = [
   {
     label: 'Courses',
-    href: '#courses',
+    to: '/student-dashboard/courses',
     icon: (
       <>
         <path d="M3.75 5.25A1.5 1.5 0 0 1 5.25 3.75h4.5a1.5 1.5 0 0 1 1.5 1.5v13.5a1.5 1.5 0 0 1-1.5 1.5h-4.5a1.5 1.5 0 0 1-1.5-1.5V5.25Z" />
@@ -11,7 +13,7 @@ const navigationItems = [
   },
   {
     label: 'Task',
-    href: '#tasks',
+    to: '/student-dashboard/tasks',
     icon: (
       <>
         <rect x="5" y="4" width="14" height="17" rx="2" />
@@ -21,7 +23,7 @@ const navigationItems = [
   },
   {
     label: 'Certification',
-    href: '#certification',
+    to: '/student-dashboard/certification',
     icon: (
       <>
         <path d="M12 3.75 14.55 9l5.7.83-4.13 4.02.98 5.68L12 16.85l-5.1 2.68.98-5.68-4.13-4.02L9.45 9 12 3.75Z" />
@@ -31,7 +33,7 @@ const navigationItems = [
   },
   {
     label: 'Referral',
-    href: '#referral',
+    to: '/student-dashboard/referral',
     icon: (
       <>
         <circle cx="9" cy="8" r="3.25" />
@@ -42,7 +44,7 @@ const navigationItems = [
   },
   {
     label: 'Payment',
-    href: '#payment',
+    to: '/student-dashboard/payment',
     icon: (
       <>
         <rect x="3" y="5" width="18" height="14" rx="2.5" />
@@ -74,13 +76,12 @@ const Sidebar = () => (
         Menu
       </p>
       <ul className="space-y-1.5">
-        {navigationItems.map(({ label, href, icon }, index) => (
+        {navigationItems.map(({ label, to, icon }) => (
           <li key={label}>
-            <a
-              href={href}
-              aria-current={index === 0 ? 'page' : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
-                index === 0
+            <NavLink
+              to={to}
+              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
+                isActive
                   ? 'bg-indigo-50 text-indigo-700'
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
@@ -98,7 +99,7 @@ const Sidebar = () => (
                 {icon}
               </svg>
               <span>{label}</span>
-            </a>
+            </NavLink>
           </li>
         ))}
       </ul>
