@@ -54,18 +54,23 @@ const navigationItems = [
   },
 ]
 
+const profileImageUrl = 'https://imgs.search.brave.com/zJaFBgHaYbUFcjXNr-kWxfICMmU03d3XI_Y1RiJe9kQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5nZXR0eWltYWdl/cy5jb20vaWQvMjEy/MDc2MjU1Ni9waG90/by9wb3J0cmFpdC1v/Zi1hLW1hbi10YWtp/bmctc2VsZmllLmpw/Zz9zPTYxMng2MTIm/dz0wJms9MjAmYz1o/ODNZZmtrN0xMOV9t/dmpEczFnV1NDVzYx/eUxfdElyLVlteTVI/eV91WEJBPQ'
+
 const Sidebar = () => (
   <aside className="h-full w-full border-r border-slate-200 bg-white px-5 py-8 md:w-64">
     <div className="mb-9 flex flex-col items-center text-center">
       <div
-        role="img"
-        aria-label="Blank profile photo"
+        role={profileImageUrl ? undefined : 'img'}
+        aria-label={profileImageUrl ? undefined : 'Blank profile photo'}
         className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 ring-4 ring-indigo-50"
       >
-        <svg aria-hidden="true" className="h-10 w-10 text-slate-300" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21a8 8 0 0 1 16 0H4Z" />
-        </svg>
+        {profileImageUrl && (
+          <img
+            src={profileImageUrl}
+            alt="Learner profile"
+            className="h-full w-full rounded-full object-cover"
+          />
+        )}
       </div>
       <p className="text-sm font-semibold text-slate-800">My Learning</p>
       <p className="mt-1 text-xs text-slate-500">Learner account</p>

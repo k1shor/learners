@@ -4,7 +4,7 @@ const Header = ({ studentMode = false }) => {
   const authButtons = studentMode ? (
     <div className="flex items-center gap-2">
       <Link
-        to="/student-dashboard"
+        to="/student-dashboard/courses"
         className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700 sm:px-4"
       >
         My Courses
