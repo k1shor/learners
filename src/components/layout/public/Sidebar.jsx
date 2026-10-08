@@ -18,7 +18,7 @@ export default function Sidebar({
       <div className="flex flex-col items-center pb-6 border-b border-indigo-200">
         <div className="w-20 h-20 bg-indigo-300 rounded-full overflow-hidden mb-3 border-2 border-indigo-600 flex items-center justify-center shadow-sm">
           <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+            src="https://media.istockphoto.com/id/1074621178/photo/nice-man-with-hat-vehicle-interior-portrait-in-winter.jpg?s=612x612&w=0&k=20&c=0yVs_v6TXECZVO-dRM2nEjCaZ0FvVNhZngRQp6hOxe8="
             alt="User Profile"
             className="w-full h-full object-cover"
           />
