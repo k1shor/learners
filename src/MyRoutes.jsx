@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Homepage from './pages/Homepage'
 import StudentDashboard from './pages/StudentDashboard'
-import Courses from './pages/Courses'
+import Courses from './pages/course/Courses'
+import CourseDetails from './pages/course/CourseDetails'
 import Tasks from './pages/Tasks'
 import Certification from './pages/Certification'
 import Referral from './pages/Referral'
@@ -23,6 +24,7 @@ const MyRoutes = () => {
                 <Route path='/student-dashboard' element={<SidebarLayout />}>
                     <Route index element={<StudentDashboard />} />
                     <Route path='courses' element={<Courses />} />
+                    <Route path='courses/:courseCode' element={<CourseDetails />} />
                     <Route path='tasks' element={<Tasks />} />
                     <Route path='certification' element={<Certification />} />
                     <Route path='referral' element={<Referral />} />
