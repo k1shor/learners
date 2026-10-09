@@ -1,0 +1,42 @@
+[
+  {
+    "title": "Introduction to Web Development",
+    "course_code": "WEB-101",
+    "instructor": "Aarati Shrestha",
+    "duration": "8 weeks",
+    "time": "10:00 AM - 11:30 AM",
+    "start_date": "2026-11-02"
+  },
+  {
+    "title": "UI/UX Design Fundamentals",
+    "course_code": "DES-120",
+    "instructor": "Suman Karki",
+    "duration": "6 weeks",
+    "time": "1:00 PM - 2:30 PM",
+    "start_date": "2026-11-09"
+  },
+  {
+    "title": "Python Programming",
+    "course_code": "PY-110",
+    "instructor": "Nisha Gurung",
+    "duration": "10 weeks",
+    "time": "3:00 PM - 4:30 PM",
+    "start_date": "2026-11-16"
+  },
+  {
+    "title": "Data Analytics Essentials",
+    "course_code": "DA-205",
+    "instructor": "Prakash Adhikari",
+    "duration": "7 weeks",
+    "time": "11:00 AM - 12:30 PM",
+    "start_date": "2026-11-23"
+  },
+  {
+    "title": "Digital Marketing Strategy",
+    "course_code": "DM-130",
+    "instructor": "Anisha Tamang",
+    "duration": "5 weeks",
+    "time": "2:00 PM - 3:30 PM",
+    "start_date": "2026-11-30"
+  }
+]
