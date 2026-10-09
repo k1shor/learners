@@ -18,7 +18,8 @@ const Header = ({ isLoggedIn, onLogin, onLogout }) => {
           tabindex="-1"
           className="hidden outline-none max-lg:fixed max-lg:right-0 max-lg:top-0 max-lg:z-50 max-lg:h-full max-lg:w-1/2 max-lg:overflow-auto max-lg:border-l max-lg:border-slate-700 max-lg:bg-slate-900 max-lg:shadow-md max-sm:w-full lg:block"
         >
-          <div className="sticky top-0 flex items-center justify-between border-b border-slate-700 bg-slate-900 px-4 py-2 max-lg:min-h-[68px] lg:hidden">
+          <div className="sticky top-0 flex items-center justify-between border-b b
+          order-slate-700 bg-slate-900 px-4 py-2 max-lg:min-h-[68px] lg:hidden">
             <a
               href="#"
               className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
