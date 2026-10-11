@@ -8,21 +8,33 @@ export default function Layout({ children }) {
   const [userName, setUserName] = useState("John Doe");
   const [activeTab, setActiveTab] = useState("courses");
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedTaskCourse, setSelectedTaskCourse] = useState(null);
+  const [selectedCertCourse, setSelectedCertCourse] = useState(null);
 
-  // Interactive inline state for the active view
+  // Authentication Modal States
+  const [authModal, setAuthModal] = useState(null); // 'login' | 'signup' | null
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+
+  // Interactive inline state for active views
   const [activeVideo, setActiveVideo] = useState(null);
   const [activeSyllabus, setActiveSyllabus] = useState(null);
   const [activeAssignment, setActiveAssignment] = useState(null);
+  const [activeTaskAssignment, setActiveTaskAssignment] = useState(null);
 
-  // Available courses dataset with populated avatar URLs matching each participant
+  // Available courses dataset
   const coursesData = [
     {
       Title: "Introduction to React",
       "Course-Code": "CS101",
       Instructor: "Dr. Jane Smith",
       Duration: "8 Weeks",
+      durationWeeks: 8,
       Time: "10:00 AM - 11:30 AM",
-      "Start-date": "Nov 1, 2026",
+      "Start-date": "Oct 1, 2026",
       Description:
         "Master the fundamentals of React, including components, props, state management, and hooks to build modern web applications.",
       Materials: "React Cheatsheet, Starter Files, Slide Decks",
@@ -69,15 +81,17 @@ export default function Layout({ children }) {
       assignments: [
         {
           title: "Assignment 1: Component Tree Design",
-          dueDate: "End of Week 2",
+          dueDate: "Oct 15, 2026",
           details:
             "Create a multi-component layout replicating a dashboard interface.",
+          isCompleted: false,
         },
         {
           title: "Assignment 2: Counter & State Tracker",
-          dueDate: "End of Week 4",
+          dueDate: "Oct 25, 2026",
           details:
             "Build an interactive tracker using useState with persistent local storage.",
+          isCompleted: false,
         },
       ],
       participants: [
@@ -106,8 +120,9 @@ export default function Layout({ children }) {
       "Course-Code": "CS201",
       Instructor: "Prof. John Doe",
       Duration: "6 Weeks",
+      durationWeeks: 6,
       Time: "2:00 PM - 3:30 PM",
-      "Start-date": "Nov 5, 2026",
+      "Start-date": "Aug 1, 2026",
       Description:
         "Deep dive into asynchronous JavaScript, closures, prototypes, ES6+ features, and modern performance optimization techniques.",
       Materials: "JS Handbook, Code Snippets Repository",
@@ -154,15 +169,17 @@ export default function Layout({ children }) {
       assignments: [
         {
           title: "Assignment 1: Custom Promise Implementation",
-          dueDate: "End of Week 2",
+          dueDate: "Aug 15, 2026",
           details:
             "Recreate a basic version of JavaScript Promises from scratch.",
+          isCompleted: true,
         },
         {
           title: "Assignment 2: Event Loop Analyzer",
-          dueDate: "End of Week 5",
+          dueDate: "Sep 5, 2026",
           details:
             "Analyze complex synchronous/asynchronous output execution flows.",
+          isCompleted: true,
         },
       ],
       participants: [
@@ -185,6 +202,7 @@ export default function Layout({ children }) {
       "Course-Code": "DS105",
       Instructor: "Sarah Jenkins",
       Duration: "4 Weeks",
+      durationWeeks: 4,
       Time: "11:00 AM - 12:30 PM",
       "Start-date": "Nov 10, 2026",
       Description:
@@ -233,9 +251,10 @@ export default function Layout({ children }) {
       assignments: [
         {
           title: "Assignment 1: Mobile Wireframe Flow",
-          dueDate: "End of Week 2",
+          dueDate: "Nov 20, 2026",
           details:
             "Design a 5-screen mobile application wireframe user journey.",
+          isCompleted: false,
         },
       ],
       participants: [
@@ -264,6 +283,7 @@ export default function Layout({ children }) {
       "Course-Code": "CS301",
       Instructor: "Alex Rivera",
       Duration: "12 Weeks",
+      durationWeeks: 12,
       Time: "1:00 PM - 3:00 PM",
       "Start-date": "Nov 15, 2026",
       Description:
@@ -310,8 +330,9 @@ export default function Layout({ children }) {
       assignments: [
         {
           title: "Assignment 1: REST API Build",
-          dueDate: "End of Week 4",
+          dueDate: "Dec 10, 2026",
           details: "Develop a fully functional product catalog backend API.",
+          isCompleted: false,
         },
       ],
       participants: [
@@ -334,8 +355,9 @@ export default function Layout({ children }) {
       "Course-Code": "CS202",
       Instructor: "Dr. Emily Chen",
       Duration: "10 Weeks",
+      durationWeeks: 10,
       Time: "9:00 AM - 10:30 AM",
-      "Start-date": "Nov 20, 2026",
+      "Start-date": "Dec 1, 2026",
       Description:
         "Understand relational database design, SQL querying, indexing, normalization, and NoSQL fundamentals.",
       Materials: "SQL Query Reference Guide, Schema Diagrams",
@@ -381,9 +403,10 @@ export default function Layout({ children }) {
       assignments: [
         {
           title: "Assignment 1: Schema Normalization Task",
-          dueDate: "End of Week 3",
+          dueDate: "Dec 20, 2026",
           details:
             "Normalize an unformatted transactional table database up to 3NF.",
+          isCompleted: false,
         },
       ],
       participants: [
@@ -409,15 +432,69 @@ export default function Layout({ children }) {
     },
   ];
 
-  const handleLogin = () => setIsLoggedIn(true);
-  const handleSignup = () => setIsLoggedIn(true);
-  const handleLogout = () => setIsLoggedIn(false);
+  // Auth Handlers
+  const handleOpenLogin = () => setAuthModal("login");
+  const handleOpenSignup = () => setAuthModal("signup");
+  const handleCloseAuth = () => setAuthModal(null);
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    if (loginEmail.trim()) {
+      // Set username based on email prefix if not provided
+      const extractedName = loginEmail.split("@")[0];
+      setUserName(
+        extractedName.charAt(0).toUpperCase() + extractedName.slice(1),
+      );
+    }
+    setIsLoggedIn(true);
+    setAuthModal(null);
+  };
+
+  const handleSignupSubmit = (e) => {
+    e.preventDefault();
+    if (signupName.trim()) {
+      setUserName(signupName);
+    }
+    setIsLoggedIn(true);
+    setAuthModal(null);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setSelectedCourse(null);
+    setSelectedTaskCourse(null);
+    setSelectedCertCourse(null);
+  };
 
   const handleSelectCourse = (course) => {
     setSelectedCourse(course);
     setActiveVideo(null);
     setActiveSyllabus(null);
     setActiveAssignment(null);
+  };
+
+  const getDynamicStatus = (startDateStr, durationWeeks) => {
+    const now = new Date();
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + durationWeeks * 7);
+
+    if (now < startDate) return "Pending";
+    if (now >= startDate && now <= endDate) return "Ongoing";
+    return "Completed";
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case "Ongoing":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Completed":
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "Pending":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
   };
 
   const renderTabContent = () => {
@@ -429,58 +506,349 @@ export default function Layout({ children }) {
               Available Courses
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {coursesData.map((course, index) => (
-                <div
-                  key={index}
-                  className="bg-slate-50 border border-indigo-200 p-4 rounded-lg shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-bold text-indigo-900 text-lg leading-snug">
-                        {course.Title}
-                      </h3>
-                      <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-1 rounded shrink-0">
-                        {course["Course-Code"]}
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-1 text-sm text-slate-600 mt-1">
-                      <p>Instructor: {course.Instructor}</p>
-                      <p>Duration: {course.Duration}</p>
-                      <p>Time: {course.Time}</p>
-                      <p>Start Date: {course["Start-date"]}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleSelectCourse(course)}
-                    className="w-full mt-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
+              {coursesData.map((course, index) => {
+                const currentStatus = getDynamicStatus(
+                  course["Start-date"],
+                  course.durationWeeks,
+                );
+                return (
+                  <div
+                    key={index}
+                    className="bg-slate-50 border border-indigo-200 p-4 rounded-lg shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow"
                   >
-                    View Details
-                  </button>
-                </div>
-              ))}
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="font-bold text-indigo-900 text-lg leading-snug">
+                          {course.Title}
+                        </h3>
+                        <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-1 rounded shrink-0">
+                          {course["Course-Code"]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadgeClass(currentStatus)}`}
+                        >
+                          {currentStatus}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 text-sm text-slate-600 mt-1">
+                        <p>Instructor: {course.Instructor}</p>
+                        <p>Duration: {course.Duration}</p>
+                        <p>Time: {course.Time}</p>
+                        <p>Start Date: {course["Start-date"]}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleSelectCourse(course)}
+                      className="w-full mt-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
       case "tasks":
         return (
-          <div className="flex flex-col flex-1">
-            <h2 className="text-xl font-bold text-slate-800 mb-2">
-              Pending Tasks
+          <div className="flex flex-col flex-1 gap-4">
+            <h2 className="text-xl font-bold text-slate-800">
+              Tasks & Assignments
             </h2>
-            <p className="text-slate-600">
-              Complete your assignments and quizzes here.
-            </p>
+            {selectedTaskCourse ? (
+              <div className="flex flex-col gap-6 bg-slate-50 border border-indigo-100 p-6 rounded-xl">
+                <div>
+                  <button
+                    onClick={() => {
+                      setSelectedTaskCourse(null);
+                      setActiveTaskAssignment(null);
+                    }}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-lg transition-colors cursor-pointer"
+                  >
+                    ← Back to Courses
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1 rounded">
+                      {selectedTaskCourse["Course-Code"]}
+                    </span>
+                    {(() => {
+                      const allCompleted = selectedTaskCourse.assignments.every(
+                        (a) => a.isCompleted,
+                      );
+                      const taskStatus = allCompleted ? "Completed" : "Pending";
+                      return (
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${taskStatus === "Completed" ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}
+                        >
+                          {taskStatus}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <h2 className="text-2xl font-bold text-indigo-900">
+                    {selectedTaskCourse.Title}
+                  </h2>
+                  <p className="text-sm text-slate-600">
+                    Instructor: {selectedTaskCourse.Instructor}
+                  </p>
+                </div>
+
+                <div className="bg-white border border-indigo-100 p-4 rounded-xl flex flex-col gap-3">
+                  <h3 className="font-bold text-indigo-900 text-sm uppercase tracking-wider">
+                    Course Assignments
+                  </h3>
+                  <div className="flex flex-col gap-2">
+                    {selectedTaskCourse.assignments.map((assignment, aIdx) => (
+                      <div
+                        key={aIdx}
+                        className="flex flex-col bg-slate-50 border border-slate-200 rounded-lg overflow-hidden"
+                      >
+                        <div
+                          onClick={() =>
+                            setActiveTaskAssignment(
+                              activeTaskAssignment === aIdx ? null : aIdx,
+                            )
+                          }
+                          className="p-3 flex justify-between items-center hover:bg-slate-100 cursor-pointer"
+                        >
+                          <div>
+                            <p className="font-semibold text-sm text-slate-800">
+                              {assignment.title}
+                            </p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              Due: {assignment.dueDate}
+                            </p>
+                          </div>
+                          <span
+                            className={`text-xs font-semibold px-2.5 py-1 rounded border ${assignment.isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}
+                          >
+                            {assignment.isCompleted ? "Completed" : "Pending"}
+                          </span>
+                        </div>
+                        {activeTaskAssignment === aIdx && (
+                          <div className="p-3 bg-white border-t border-slate-200 text-xs text-slate-600 flex flex-col gap-2">
+                            <p>
+                              <strong>Instructions:</strong>{" "}
+                              {assignment.details}
+                            </p>
+                            {assignment.isCompleted ? (
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Viewing submitted assignment details for: ${assignment.title}`,
+                                  )
+                                }
+                                className="self-start py-1.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium transition-colors cursor-pointer"
+                              >
+                                View
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  assignment.isCompleted = true;
+                                  alert(
+                                    `Submitted assignment: ${assignment.title}`,
+                                  );
+                                }}
+                                className="self-start py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium transition-colors cursor-pointer"
+                              >
+                                Submit Assignment
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {coursesData.map((course, index) => {
+                  const allCompleted = course.assignments.every(
+                    (a) => a.isCompleted,
+                  );
+                  const taskStatus = allCompleted ? "Completed" : "Pending";
+                  return (
+                    <div
+                      key={index}
+                      className="bg-slate-50 border border-indigo-200 p-4 rounded-lg shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <h3 className="font-bold text-indigo-900 text-lg leading-snug">
+                            {course.Title}
+                          </h3>
+                          <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-1 rounded shrink-0">
+                            {course["Course-Code"]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${taskStatus === "Completed" ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-amber-100 text-amber-700 border-amber-200"}`}
+                          >
+                            {taskStatus}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1 text-sm text-slate-600 mt-1">
+                          <p>Instructor: {course.Instructor}</p>
+                          <p>Total Tasks: {course.assignments.length}</p>
+                          <p>
+                            Completed:{" "}
+                            {
+                              course.assignments.filter((a) => a.isCompleted)
+                                .length
+                            }{" "}
+                            / {course.assignments.length}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setSelectedTaskCourse(course)}
+                        className="w-full mt-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
+                      >
+                        View Tasks
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       case "certificates":
         return (
-          <div className="flex flex-col flex-1">
-            <h2 className="text-xl font-bold text-slate-800 mb-2">
+          <div className="flex flex-col flex-1 gap-4">
+            <h2 className="text-xl font-bold text-slate-800">
               Your Certificates
             </h2>
-            <p className="text-slate-600">
-              Download and view certificates for completed courses.
-            </p>
+            {selectedCertCourse ? (
+              <div className="flex flex-col gap-6 bg-slate-50 border border-indigo-100 p-6 rounded-xl">
+                <div>
+                  <button
+                    onClick={() => setSelectedCertCourse(null)}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3.5 py-2 rounded-lg transition-colors cursor-pointer"
+                  >
+                    ← Back to Certificates
+                  </button>
+                </div>
+
+                {/* Certificate Preview Card */}
+                <div className="bg-white border-4 border-indigo-200 p-8 rounded-2xl shadow-md flex flex-col items-center text-center gap-6 max-w-2xl mx-auto w-full">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs uppercase tracking-widest font-bold text-indigo-600">
+                      E-learners Hub
+                    </span>
+                    <h2 className="text-2xl font-extrabold text-slate-800">
+                      Certificate of Completion
+                    </h2>
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    This is proudly presented to
+                  </p>
+                  <p className="text-3xl font-bold text-indigo-900 border-b-2 border-indigo-100 pb-2 px-6">
+                    {userName}
+                  </p>
+                  <p className="text-sm text-slate-600 leading-relaxed max-w-md">
+                    for successfully completing the comprehensive curriculum and
+                    assessments for{" "}
+                    <strong className="text-slate-800">
+                      {selectedCertCourse.Title}
+                    </strong>{" "}
+                    ({selectedCertCourse["Course-Code"]}) instructed by{" "}
+                    {selectedCertCourse.Instructor}.
+                  </p>
+                  <div className="flex justify-between items-center w-full pt-8 border-t border-indigo-100 text-xs text-slate-400">
+                    <div>
+                      <p className="font-bold text-slate-700">Issued Date</p>
+                      <p>October 2026</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-700">Credential ID</p>
+                      <p>ELH-{selectedCertCourse["Course-Code"]}-2026</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={() =>
+                      alert(
+                        `Downloading official certificate for ${selectedCertCourse.Title}`,
+                      )
+                    }
+                    className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm"
+                  >
+                    Download Certificate (PDF)
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {coursesData.map((course, index) => {
+                  const currentStatus = getDynamicStatus(
+                    course["Start-date"],
+                    course.durationWeeks,
+                  );
+                  const isCompleted = currentStatus === "Completed";
+                  return (
+                    <div
+                      key={index}
+                      className="bg-slate-50 border border-indigo-200 p-4 rounded-lg shadow-sm flex flex-col justify-between gap-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <h3 className="font-bold text-indigo-900 text-lg leading-snug">
+                            {course.Title}
+                          </h3>
+                          <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-1 rounded shrink-0">
+                            {course["Course-Code"]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${isCompleted ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}`}
+                          >
+                            {isCompleted
+                              ? "Available"
+                              : "Locked (Course Ongoing)"}
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1 text-sm text-slate-600 mt-1">
+                          <p>Instructor: {course.Instructor}</p>
+                          <p>Duration: {course.Duration}</p>
+                          <p>Start Date: {course["Start-date"]}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (isCompleted) {
+                            setSelectedCertCourse(course);
+                          } else {
+                            alert(
+                              "Certificate is available once the course status is Completed.",
+                            );
+                          }
+                        }}
+                        className={`w-full mt-2 py-2 px-4 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer shadow-sm ${
+                          isCompleted
+                            ? "bg-indigo-600 hover:bg-indigo-700"
+                            : "bg-slate-400 hover:bg-slate-500"
+                        }`}
+                      >
+                        {isCompleted
+                          ? "View Certificate"
+                          : "Certificate Locked"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       case "referrals":
@@ -511,14 +879,16 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50">
+    <div className="w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50 relative">
       <Header
         isLoggedIn={isLoggedIn}
-        onLoginClick={handleLogin}
-        onSignupClick={handleSignup}
+        onLoginClick={handleOpenLogin}
+        onSignupClick={handleOpenSignup}
         onLogoutClick={handleLogout}
         onMyCourseClick={() => {
           setSelectedCourse(null);
+          setSelectedTaskCourse(null);
+          setSelectedCertCourse(null);
           setActiveTab("courses");
         }}
       />
@@ -531,6 +901,8 @@ export default function Layout({ children }) {
             activeTab={activeTab}
             setActiveTab={(tab) => {
               setSelectedCourse(null);
+              setSelectedTaskCourse(null);
+              setSelectedCertCourse(null);
               setActiveTab(tab);
             }}
           />
@@ -575,6 +947,19 @@ export default function Layout({ children }) {
                             <span className="text-xs bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1 rounded">
                               {selectedCourse["Course-Code"]}
                             </span>
+                            {(() => {
+                              const currentStatus = getDynamicStatus(
+                                selectedCourse["Start-date"],
+                                selectedCourse.durationWeeks,
+                              );
+                              return (
+                                <span
+                                  className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getStatusBadgeClass(currentStatus)}`}
+                                >
+                                  {currentStatus}
+                                </span>
+                              );
+                            })()}
                           </div>
                           <h2 className="text-2xl font-bold text-indigo-900">
                             {selectedCourse.Title}
@@ -741,8 +1126,12 @@ export default function Layout({ children }) {
                                         Due: {assignment.dueDate}
                                       </p>
                                     </div>
-                                    <span className="text-xs bg-amber-50 text-amber-700 border border-amber-200 font-semibold px-2.5 py-1 rounded">
-                                      Pending
+                                    <span
+                                      className={`text-xs font-semibold px-2.5 py-1 rounded border ${assignment.isCompleted ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}
+                                    >
+                                      {assignment.isCompleted
+                                        ? "Completed"
+                                        : "Pending"}
                                     </span>
                                   </div>
                                   {activeAssignment === aIdx && (
@@ -751,16 +1140,30 @@ export default function Layout({ children }) {
                                         <strong>Instructions:</strong>{" "}
                                         {assignment.details}
                                       </p>
-                                      <button
-                                        onClick={() =>
-                                          alert(
-                                            `Submitted assignment: ${assignment.title}`,
-                                          )
-                                        }
-                                        className="self-start py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium transition-colors cursor-pointer"
-                                      >
-                                        Submit Assignment
-                                      </button>
+                                      {assignment.isCompleted ? (
+                                        <button
+                                          onClick={() =>
+                                            alert(
+                                              `Viewing submitted assignment: ${assignment.title}`,
+                                            )
+                                          }
+                                          className="self-start py-1.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium transition-colors cursor-pointer"
+                                        >
+                                          View
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            assignment.isCompleted = true;
+                                            alert(
+                                              `Submitted assignment: ${assignment.title}`,
+                                            );
+                                          }}
+                                          className="self-start py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-medium transition-colors cursor-pointer"
+                                        >
+                                          Submit Assignment
+                                        </button>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -770,7 +1173,7 @@ export default function Layout({ children }) {
                         </div>
                       </div>
 
-                      {/* Right Column: Participants Sidebar with Photo support */}
+                      {/* Right Column: Participants Sidebar */}
                       <div className="w-full lg:w-72 bg-slate-50 border border-indigo-100 rounded-xl p-4 flex flex-col gap-3 shrink-0">
                         <h3 className="font-bold text-indigo-900 text-sm uppercase tracking-wider">
                           Enrolled Participants (
@@ -815,18 +1218,172 @@ export default function Layout({ children }) {
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center gap-3">
-              <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">
-                Welcome to E-learners Hub
-              </h1>
-              <p className="text-slate-500 max-w-md">
-                Please log in or sign up using the top-right buttons to explore
-                your courses, tasks, and certificates.
-              </p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 py-12">
+              <div className="flex flex-col items-center gap-2 max-w-md">
+                <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                  Welcome to E-learners Hub
+                </h1>
+                <p className="text-slate-500 text-sm">
+                  Please log in or create an account using the buttons above to
+                  explore your courses, manage tasks, and view earned
+                  certificates.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  onClick={handleOpenLogin}
+                  className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={handleOpenSignup}
+                  className="py-2.5 px-6 bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
           )}
         </main>
       </div>
+
+      {/* Login Modal */}
+      {authModal === "login" && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl border border-indigo-100 shadow-xl w-full max-w-md p-6 flex flex-col gap-5">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-xl font-bold text-slate-800">
+                Log In to E-learners Hub
+              </h3>
+              <button
+                onClick={handleCloseAuth}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="student@example.com"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm mt-2"
+              >
+                Log In
+              </button>
+            </form>
+            <p className="text-xs text-center text-slate-500 border-t border-slate-100 pt-3">
+              Don't have an account?{" "}
+              <button
+                onClick={() => setAuthModal("signup")}
+                className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+              >
+                Sign Up
+              </button>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Signup Modal */}
+      {authModal === "signup" && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl border border-indigo-100 shadow-xl w-full max-w-md p-6 flex flex-col gap-5">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-xl font-bold text-slate-800">
+                Create your Account
+              </h3>
+              <button
+                onClick={handleCloseAuth}
+                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSignupSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  placeholder="student@example.com"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm mt-2"
+              >
+                Sign Up
+              </button>
+            </form>
+            <p className="text-xs text-center text-slate-500 border-t border-slate-100 pt-3">
+              Already have an account?{" "}
+              <button
+                onClick={() => setAuthModal("login")}
+                className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+              >
+                Log In
+              </button>
+            </p>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
