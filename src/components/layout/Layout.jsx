@@ -8,7 +8,7 @@ const Layout = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col bg-[#f4f1e9] text-[#203832]">
       <Header
         isLoggedIn={isLoggedIn}
         onLogin={() => setIsLoggedIn(true)}
@@ -16,9 +16,9 @@ const Layout = () => {
       />
       <main className="flex-1">
         {isLoggedIn && (
-          <div className="flex min-h-[calc(100vh-68px)] bg-white">
+          <div className="app-workspace flex min-h-[calc(100vh-76px)] flex-col sm:flex-row">
             <LearnerSidebar />
-            <div className="flex-1 px-6 py-8">
+            <div className="app-main flex-1 px-4 py-7 sm:px-7 sm:py-9 lg:px-10">
               <Outlet context={{ isLoggedIn }} />
             </div>
           </div>

@@ -10,32 +10,50 @@ const navigationItems = [
 
 const LearnerSidebar = () => {
   return (
-    <aside className="w-full border-r border-slate-200 bg-white px-6 py-7 sm:w-60">
+    <aside className="app-sidebar w-full shrink-0 border-b px-4 py-4 sm:w-60 sm:border-b-0 sm:border-r sm:px-5 sm:py-7">
       <div
-        aria-label="Default user profile image"
+        aria-label="Aarav Shrestha profile picture"
         role="img"
-        className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-slate-300 bg-slate-50 text-slate-400"
+        className="mb-4 flex items-center gap-3 sm:mb-8 sm:flex-col sm:gap-3"
       >
-        <svg
-          aria-hidden="true"
-          className="h-10 w-10"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
-        </svg>
+        <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#c9d8ae] bg-[#d9ef79] text-sm font-extrabold text-[#173c35] shadow-sm sm:size-[68px] sm:rounded-[22px]">
+          AS
+          <img
+            src="https://api.dicebear.com/9.x/avataaars/svg?seed=Aarav%20Shrestha&skinColor=ae5d29,c68642,edb98a&backgroundColor=b6e3f4,c0aede,d1d4f9"
+            alt=""
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
+            className="absolute inset-0 size-full object-cover"
+          />
+        </span>
+        <span className="sm:text-center">
+          <span className="block text-sm font-bold text-[#203832]">
+            Aarav Shrestha
+          </span>
+          <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#78877b]">
+            Learner profile
+          </span>
+        </span>
       </div>
-      <nav aria-label="Learner navigation" className="space-y-1">
+      <p className="mb-2 hidden px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a968d] sm:block">
+        Workspace
+      </p>
+      <nav
+        aria-label="Learner navigation"
+        className="flex flex-wrap gap-2 sm:block sm:space-y-1"
+      >
         {navigationItems.map((item) => (
           <NavLink
             key={item.label}
             to={item.to}
             end={item.to === "/"}
             className={({ isActive }) =>
-              `block rounded-md px-3 py-2.5 text-sm ${
+              `inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition sm:flex ${
                 isActive
-                  ? "bg-slate-100 font-semibold text-slate-900"
-                  : "text-slate-600 hover:bg-slate-50"
+                  ? "bg-[#173c35] font-semibold text-[#fffefa] shadow-sm"
+                  : "text-[#53685e] hover:bg-[#fffefa] hover:text-[#173c35]"
               }`
             }
           >

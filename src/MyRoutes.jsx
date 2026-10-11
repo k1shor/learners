@@ -1,6 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import CertificatesPage from "./pages/CertificatesPage";
+import CourseDetails from "./pages/CourseDetails";
 import Homepage from "./pages/Homepage";
 import SectionPage from "./pages/SectionPage";
+import TasksPage from "./pages/TasksPage";
 import Layout from "./components/layout/Layout";
 
 const MyRoutes = () => {
@@ -9,11 +12,12 @@ const MyRoutes = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Homepage />} />
-          <Route path="tasks" element={<SectionPage title="Tasks" />} />
           <Route
-            path="certificates"
-            element={<SectionPage title="Certificates" />}
+            path="courses/:courseCode/:courseTitle"
+            element={<CourseDetails />}
           />
+          <Route path="tasks" element={<TasksPage />} />
+          <Route path="certificates" element={<CertificatesPage />} />
           <Route path="referrals" element={<SectionPage title="Referrals" />} />
           <Route path="payments" element={<SectionPage title="Payments" />} />
         </Route>
