@@ -1,14 +1,15 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import Homepage from './pages/Homepage'
-import StudentDashboard from './pages/StudentDashboard'
-import Courses from './pages/course/Courses'
-import CourseDetails from './pages/course/CourseDetails'
-import Tasks from './pages/Tasks'
-import Certification from './pages/Certification'
-import Referral from './pages/Referral'
-import Payment from './pages/Payment'
-import Login from './pages/login/Login'
-import SignIn from './pages/login/SignIn'
+import Homepage from './pages/student_dashboard/Homepage'
+import StudentDashboard from './pages/student_dashboard/StudentDashboard'
+import Courses from './pages/student_dashboard/course/Courses'
+import CourseDetails from './pages/student_dashboard/course/CourseDetails'
+import Tasks from './pages/student_dashboard/Tasks'
+import Certification from './pages/student_dashboard/Certification'
+import Referral from './pages/student_dashboard/Referral'
+import Payment from './pages/student_dashboard/Payment'
+import Login from './pages/student_dashboard/login/Login'
+import SignIn from './pages/student_dashboard/login/SignIn'
+import TeacherDashboard from './pages/teacher_dashboard/TeacherDashboard'
 import Layout from './component/layout/public/Layout'
 import SidebarLayout from './component/sidebar/SidebarLayout'
 
@@ -21,6 +22,7 @@ const MyRoutes = () => {
                     <Route path='login' element={<Login />} />
                     <Route path='signin' element={<SignIn />} />
                 </Route>
+                <Route path='/teacher-dashboard' element={<TeacherDashboard />} />
                 <Route path='/student-dashboard' element={<SidebarLayout />}>
                     <Route index element={<StudentDashboard />} />
                     <Route path='courses' element={<Courses />} />

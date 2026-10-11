@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Papa from 'papaparse'
+import { getCourseStatus } from '../../../utils/courseStatus'
 
 const courseContent = {
   'WEB-101': {
@@ -139,6 +140,17 @@ const CourseDetails = () => {
     { type: 'DOC', title: 'Day-by-day lesson notes', detail: 'Reading · 6 short lessons' },
     { type: 'ZIP', title: 'Practice files and starter materials', detail: 'Resources · Project files' },
   ]
+  const courseStatus = getCourseStatus(course.start_date, course.duration)
+  const statusStyles = {
+    Upcoming: 'border-indigo-100 bg-indigo-50 text-indigo-800',
+    Ongoing: 'border-emerald-100 bg-emerald-50 text-emerald-800',
+    Completed: 'border-slate-200 bg-slate-100 text-slate-700',
+  }
+  const statusDotStyles = {
+    Upcoming: 'bg-indigo-500',
+    Ongoing: 'bg-emerald-500',
+    Completed: 'bg-slate-400',
+  }
 
   return (
     <section className="mx-auto max-w-6xl space-y-7" aria-labelledby="course-title">
@@ -151,7 +163,6 @@ const CourseDetails = () => {
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-white/90">{course.course_code}</span>
-              <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">Enrollment open</span>
             </div>
             <h1 id="course-title" className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">{course.title}</h1>
             <p className="mt-4 max-w-2xl leading-7 text-slate-300">{content.summary}</p>
@@ -276,6 +287,17 @@ const CourseDetails = () => {
         </div>
 
         <aside className="space-y-5">
+          <section className={`rounded-2xl border p-6 ${statusStyles[courseStatus]}`} aria-label="Course status">
+            <p className="text-xs font-bold uppercase tracking-widest opacity-75">Course status</p>
+            <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/75 px-3 py-1.5 text-sm font-semibold shadow-sm">
+              <span className={`h-2 w-2 rounded-full ${statusDotStyles[courseStatus]}`} aria-hidden="true" />
+              {courseStatus}
+            </span>
+            <p className="mt-3 text-sm opacity-75">
+              {courseStatus === 'Upcoming' ? `Starts ${formatDate(course.start_date)}` : courseStatus === 'Ongoing' ? 'This course is currently in progress.' : 'This course has ended.'}
+            </p>
+          </section>
+
           <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm" aria-labelledby="instructor-heading">
             <p className="text-xs font-bold uppercase tracking-widest text-indigo-600">Learn from an expert</p>
             <h2 id="instructor-heading" className="mt-1 text-lg font-bold text-slate-900">Your instructor</h2>
