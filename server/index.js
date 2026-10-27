@@ -47,6 +47,27 @@ database.exec(`
     is_active INTEGER NOT NULL DEFAULT 1,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_key TEXT NOT NULL UNIQUE,
+    course_code TEXT NOT NULL,
+    title TEXT NOT NULL,
+    instructor_source_name TEXT NOT NULL,
+    details_json TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+  CREATE TABLE IF NOT EXISTS classes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    instructor_source_name TEXT NOT NULL,
+    start_date TEXT NOT NULL DEFAULT '',
+    time TEXT NOT NULL DEFAULT '',
+    duration TEXT NOT NULL DEFAULT '',
+    meeting_url TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Scheduled',
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
   CREATE INDEX IF NOT EXISTS sessions_expiration_idx ON sessions(expires_at);
   CREATE INDEX IF NOT EXISTS password_reset_expiration_idx ON password_reset_tokens(expires_at);
 `);
@@ -108,6 +129,184 @@ const seedInstructors = database.transaction(() => {
   }
 });
 seedInstructors();
+
+const demoCourses = [
+  {
+    title: "Nepali Language and Communication",
+    course_code: "NEP101",
+    status: "Available",
+    instructor: "Demo Instructor: Ritu Maharjan",
+    duration: "2 hours",
+    time: "10:00 AM",
+    start_date: "11/15/2026",
+    category: "Language",
+    description:
+      "Build confidence in Nepali reading, writing, and everyday communication.",
+    takeaway: "Practice clear and confident Nepali communication.",
+    materials: ["Nepali reading guide", "Conversation practice sheet"],
+    videos: ["Everyday Nepali conversations", "Writing with clarity"],
+    assignments: [
+      "Write a short personal introduction",
+      "Practice a guided conversation",
+    ],
+    syllabus: [
+      "Everyday vocabulary",
+      "Reading for meaning",
+      "Writing short passages",
+      "Speaking with confidence",
+    ],
+    participants: [],
+  },
+  {
+    title: "Mathematics for Everyday Problem Solving",
+    course_code: "MATH110",
+    status: "Available",
+    instructor: "Demo Instructor: Kiran Bista",
+    duration: "2 hours",
+    time: "11:30 AM",
+    start_date: "11/17/2026",
+    category: "Mathematics",
+    description:
+      "Use practical mathematics to reason through everyday calculations and problems.",
+    takeaway: "Apply useful math strategies to real situations.",
+    materials: ["Problem-solving workbook", "Formula reference sheet"],
+    videos: ["Estimation and mental math", "Working through word problems"],
+    assignments: [
+      "Solve a household budgeting exercise",
+      "Explain a multi-step solution",
+    ],
+    syllabus: [
+      "Number sense",
+      "Fractions and percentages",
+      "Ratios in daily life",
+      "Problem-solving strategies",
+    ],
+    participants: [],
+  },
+  {
+    title: "Small Business and Entrepreneurship in Nepal",
+    course_code: "BUS205",
+    status: "Available",
+    instructor: "Demo Instructor: Pooja KC",
+    duration: "2.5 hours",
+    time: "1:00 PM",
+    start_date: "11/19/2026",
+    category: "Business",
+    description:
+      "Explore how to shape a practical business idea, understand customers, and plan next steps.",
+    takeaway: "Turn a promising idea into a simple business plan.",
+    materials: ["Business idea canvas", "Customer interview guide"],
+    videos: ["Finding a customer need", "Planning a small venture"],
+    assignments: [
+      "Draft a one-page business idea",
+      "Describe a target customer",
+    ],
+    syllabus: [
+      "Ideas and opportunities",
+      "Customer needs",
+      "Simple budgeting",
+      "Planning and next steps",
+    ],
+    participants: [],
+  },
+  {
+    title: "Digital Skills for Study and Work",
+    course_code: "DIG120",
+    status: "Available",
+    instructor: "Demo Instructor: Nabin Lama",
+    duration: "2 hours",
+    time: "2:30 PM",
+    start_date: "11/21/2026",
+    category: "Technology",
+    description:
+      "Practice useful digital skills for organizing information, communicating, and staying safe online.",
+    takeaway: "Work more confidently with everyday digital tools.",
+    materials: ["Digital skills checklist", "Online safety guide"],
+    videos: ["Organizing digital files", "Staying safe online"],
+    assignments: [
+      "Create a clear folder structure",
+      "Review privacy settings on a sample account",
+    ],
+    syllabus: [
+      "Files and documents",
+      "Online communication",
+      "Information checking",
+      "Privacy and safety",
+    ],
+    participants: [],
+  },
+  {
+    title: "Creative Writing and Storytelling",
+    course_code: "WRI130",
+    status: "Available",
+    instructor: "Demo Instructor: Manisha Joshi",
+    duration: "1.5 hours",
+    time: "4:00 PM",
+    start_date: "11/23/2026",
+    category: "Creative practice",
+    description:
+      "Develop a short story using vivid details, a memorable character, and a clear point of view.",
+    takeaway: "Shape an original idea into a compelling short story.",
+    materials: ["Story prompt cards", "Character planning worksheet"],
+    videos: ["Building a memorable character", "Revising a first draft"],
+    assignments: [
+      "Write a short scene",
+      "Revise a paragraph with sensory details",
+    ],
+    syllabus: [
+      "Finding story ideas",
+      "Character and setting",
+      "Scene structure",
+      "Revision and sharing",
+    ],
+    participants: [],
+  },
+];
+
+const insertCourse = database.prepare(`
+  INSERT OR IGNORE INTO courses
+    (source_key, course_code, title, instructor_source_name, details_json)
+  VALUES (?, ?, ?, ?, ?)
+`);
+const findCourse = database.prepare(
+  "SELECT id FROM courses WHERE source_key = ?",
+);
+const insertClass = database.prepare(`
+  INSERT INTO classes
+    (course_id, instructor_source_name, start_date, time, duration, meeting_url, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`);
+const seedCoursesAndClasses = database.transaction(() => {
+  for (const course of [...courseCatalog, ...demoCourses]) {
+    const sourceKey = `${course.course_code}::${course.title}`;
+    insertCourse.run(
+      sourceKey,
+      course.course_code,
+      course.title,
+      course.instructor,
+      JSON.stringify(course),
+    );
+    const savedCourse = findCourse.get(sourceKey);
+    const hasClass = database
+      .prepare("SELECT 1 FROM classes WHERE course_id = ? LIMIT 1")
+      .get(savedCourse.id);
+    if (!hasClass) {
+      insertClass.run(
+        savedCourse.id,
+        course.instructor,
+        course.start_date ?? "",
+        course.time ?? "",
+        course.duration ?? "",
+        course.meeting_url ?? "",
+        "Scheduled",
+      );
+    }
+  }
+});
+seedCoursesAndClasses();
+database
+  .prepare("UPDATE classes SET status = 'Scheduled' WHERE status = 'Available'")
+  .run();
 
 const userColumns = database.prepare("PRAGMA table_info(users)").all();
 if (!userColumns.some((column) => column.name === "is_active")) {
@@ -293,10 +492,72 @@ const serializeInstructor = (instructor) => ({
   bio: instructor.bio,
   isActive: Boolean(instructor.is_active),
   updatedAt: instructor.updated_at,
-  courses: courseCatalog
-    .filter((course) => course.instructor === instructor.source_name)
+  courses: database
+    .prepare(
+      "SELECT course_code, title FROM courses WHERE instructor_source_name = ? ORDER BY id",
+    )
+    .all(instructor.source_name)
     .map(({ course_code, title }) => ({ courseCode: course_code, title })),
 });
+
+const courseById = database.prepare("SELECT * FROM courses WHERE id = ?");
+const classesForCourse = database.prepare(
+  "SELECT * FROM classes WHERE course_id = ? ORDER BY start_date, time, id",
+);
+const getInstructorName = database.prepare(
+  "SELECT name, is_active FROM instructors WHERE source_name = ?",
+);
+const serializeCourse = (record) => {
+  const details = JSON.parse(record.details_json);
+  const instructor = getInstructorName.get(record.instructor_source_name);
+  const classes = classesForCourse.all(record.id).map((classRecord) => ({
+    id: classRecord.id,
+    start_date: classRecord.start_date,
+    time: classRecord.time,
+    duration: classRecord.duration,
+    meeting_url: classRecord.meeting_url,
+    status: classRecord.status,
+  }));
+  const nextClass = classes.find((item) => item.status !== "Cancelled");
+  return {
+    ...details,
+    courseId: record.id,
+    instructorSourceName: record.instructor_source_name,
+    isActive: Boolean(record.is_active),
+    instructor: instructor?.is_active
+      ? instructor.name
+      : "Instructor unavailable",
+    ...(nextClass
+      ? {
+          start_date: nextClass.start_date,
+          time: nextClass.time,
+          duration: nextClass.duration || details.duration,
+          meeting_url: nextClass.meeting_url,
+          status: nextClass.status,
+        }
+      : {}),
+    classes,
+  };
+};
+
+const serializeClass = (record) => {
+  const course = courseById.get(record.course_id);
+  const instructor = getInstructorName.get(record.instructor_source_name);
+  return {
+    id: record.id,
+    courseId: record.course_id,
+    courseCode: course.course_code,
+    courseTitle: course.title,
+    instructorSourceName: record.instructor_source_name,
+    instructor: instructor?.name ?? record.instructor_source_name,
+    startDate: record.start_date,
+    time: record.time,
+    duration: record.duration,
+    meetingUrl: record.meeting_url,
+    status: record.status,
+    updatedAt: record.updated_at,
+  };
+};
 
 app.get("/api/health", (_request, response) => response.json({ ok: true }));
 
@@ -614,11 +875,9 @@ app.patch("/api/admin/students/:id", requireAdminKey, (request, response) => {
     return response.json({ student: adminStudent(student) });
   } catch (error) {
     if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return response
-        .status(409)
-        .json({
-          error: "That email address is already used by another student.",
-        });
+      return response.status(409).json({
+        error: "That email address is already used by another student.",
+      });
     }
     console.error("Could not update student:", error);
     return response.status(500).json({ error: "Could not update student." });
@@ -719,6 +978,295 @@ app.patch(
     return response.json({ instructor: serializeInstructor(instructor) });
   },
 );
+
+app.get("/api/courses", (_request, response) => {
+  const courses = database
+    .prepare("SELECT * FROM courses WHERE is_active = 1 ORDER BY id")
+    .all()
+    .map(serializeCourse);
+  return response.json({ courses });
+});
+
+app.get("/api/admin/courses", requireAdminKey, (_request, response) => {
+  const courses = database
+    .prepare("SELECT * FROM courses ORDER BY id")
+    .all()
+    .map(serializeCourse);
+  return response.json({ courses });
+});
+
+app.get("/api/admin/courses/:id", requireAdminKey, (request, response) => {
+  const courseId = Number(request.params.id);
+  if (!Number.isInteger(courseId) || courseId < 1) {
+    return response.status(400).json({ error: "Invalid course ID." });
+  }
+  const course = courseById.get(courseId);
+  if (!course) return response.status(404).json({ error: "Course not found." });
+  return response.json({ course: serializeCourse(course) });
+});
+
+const validateCoursePayload = (payload, current = {}) => {
+  const details = { ...current };
+  const stringFields = [
+    "title",
+    "course_code",
+    "status",
+    "instructor",
+    "duration",
+    "time",
+    "start_date",
+    "category",
+    "description",
+    "takeaway",
+    "meeting_url",
+  ];
+  for (const field of stringFields) {
+    if (payload[field] !== undefined) {
+      if (typeof payload[field] !== "string") {
+        return { error: `${field} must be text.` };
+      }
+      details[field] = payload[field].trim();
+    }
+  }
+  for (const field of [
+    "materials",
+    "videos",
+    "assignments",
+    "syllabus",
+    "participants",
+  ]) {
+    if (payload[field] !== undefined) {
+      if (
+        !Array.isArray(payload[field]) ||
+        payload[field].some((item) => typeof item !== "string")
+      ) {
+        return { error: `${field} must be a list of text values.` };
+      }
+      details[field] = payload[field];
+    }
+  }
+  if (!details.title || details.title.length > 120)
+    return {
+      error: "Course title is required and must be 120 characters or fewer.",
+    };
+  if (!details.course_code || details.course_code.length > 30)
+    return {
+      error: "Course code is required and must be 30 characters or fewer.",
+    };
+  if (!details.instructor) return { error: "Choose an instructor." };
+  const instructor = getInstructorName.get(details.instructor);
+  if (!instructor) return { error: "Selected instructor was not found." };
+  if (
+    typeof payload.isActive !== "undefined" &&
+    typeof payload.isActive !== "boolean"
+  ) {
+    return { error: "isActive must be true or false." };
+  }
+  return { details, instructorSourceName: details.instructor };
+};
+
+app.post("/api/admin/courses", requireAdminKey, (request, response) => {
+  const validated = validateCoursePayload(request.body ?? {});
+  if (validated.error)
+    return response.status(400).json({ error: validated.error });
+  const details = {
+    status: "Available",
+    duration: "",
+    time: "",
+    start_date: "",
+    category: "General",
+    description: "",
+    takeaway: "",
+    materials: [],
+    videos: [],
+    assignments: [],
+    syllabus: [],
+    participants: [],
+    ...validated.details,
+  };
+  const sourceKey = `admin:${crypto.randomUUID()}`;
+  const result = database
+    .prepare(
+      `
+    INSERT INTO courses (source_key, course_code, title, instructor_source_name, details_json, is_active)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `,
+    )
+    .run(
+      sourceKey,
+      details.course_code,
+      details.title,
+      validated.instructorSourceName,
+      JSON.stringify(details),
+      Number(request.body?.isActive ?? true),
+    );
+  const course = courseById.get(result.lastInsertRowid);
+  return response.status(201).json({ course: serializeCourse(course) });
+});
+
+app.patch("/api/admin/courses/:id", requireAdminKey, (request, response) => {
+  const courseId = Number(request.params.id);
+  if (!Number.isInteger(courseId) || courseId < 1)
+    return response.status(400).json({ error: "Invalid course ID." });
+  const current = courseById.get(courseId);
+  if (!current)
+    return response.status(404).json({ error: "Course not found." });
+  const currentDetails = JSON.parse(current.details_json);
+  const validated = validateCoursePayload(request.body ?? {}, currentDetails);
+  if (validated.error)
+    return response.status(400).json({ error: validated.error });
+  const isActive = request.body?.isActive ?? Boolean(current.is_active);
+  database
+    .prepare(
+      `
+    UPDATE courses SET course_code = ?, title = ?, instructor_source_name = ?, details_json = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `,
+    )
+    .run(
+      validated.details.course_code,
+      validated.details.title,
+      validated.instructorSourceName,
+      JSON.stringify(validated.details),
+      Number(isActive),
+      courseId,
+    );
+  return response.json({ course: serializeCourse(courseById.get(courseId)) });
+});
+
+const allClassRecords = () =>
+  database
+    .prepare(
+      `
+  SELECT classes.* FROM classes
+  JOIN courses ON courses.id = classes.course_id
+  ORDER BY classes.start_date, classes.time, classes.id
+`,
+    )
+    .all();
+
+app.get("/api/admin/classes", requireAdminKey, (_request, response) => {
+  return response.json({ classes: allClassRecords().map(serializeClass) });
+});
+
+app.get("/api/admin/classes/:id", requireAdminKey, (request, response) => {
+  const classId = Number(request.params.id);
+  if (!Number.isInteger(classId) || classId < 1)
+    return response.status(400).json({ error: "Invalid class ID." });
+  const record = database
+    .prepare("SELECT * FROM classes WHERE id = ?")
+    .get(classId);
+  if (!record) return response.status(404).json({ error: "Class not found." });
+  return response.json({ class: serializeClass(record) });
+});
+
+const validateClassPayload = (payload) => {
+  const courseId = Number(payload.courseId);
+  const course = courseById.get(courseId);
+  if (!Number.isInteger(courseId) || !course)
+    return { error: "Choose a valid course." };
+  const instructorSourceName =
+    typeof payload.instructorSourceName === "string"
+      ? payload.instructorSourceName
+      : course.instructor_source_name;
+  if (!getInstructorName.get(instructorSourceName))
+    return { error: "Choose a valid instructor." };
+  const startDate =
+    typeof payload.startDate === "string" ? payload.startDate.trim() : "";
+  const time = typeof payload.time === "string" ? payload.time.trim() : "";
+  const duration =
+    typeof payload.duration === "string" ? payload.duration.trim() : "";
+  const meetingUrl =
+    typeof payload.meetingUrl === "string" ? payload.meetingUrl.trim() : "";
+  const status =
+    typeof payload.status === "string" ? payload.status.trim() : "Scheduled";
+  if (!startDate || startDate.length > 80)
+    return { error: "Enter a class date." };
+  if (!time || time.length > 40) return { error: "Enter a class time." };
+  if (meetingUrl && !/^https?:\/\//i.test(meetingUrl))
+    return { error: "Meeting URL must start with http:// or https://." };
+  if (!new Set(["Scheduled", "Completed", "Cancelled"]).has(status))
+    return { error: "Choose a valid class status." };
+  return {
+    courseId,
+    instructorSourceName,
+    startDate,
+    time,
+    duration,
+    meetingUrl,
+    status,
+  };
+};
+
+app.post("/api/admin/classes", requireAdminKey, (request, response) => {
+  const validated = validateClassPayload(request.body ?? {});
+  if (validated.error)
+    return response.status(400).json({ error: validated.error });
+  const result = database
+    .prepare(
+      `
+    INSERT INTO classes (course_id, instructor_source_name, start_date, time, duration, meeting_url, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `,
+    )
+    .run(
+      validated.courseId,
+      validated.instructorSourceName,
+      validated.startDate,
+      validated.time,
+      validated.duration,
+      validated.meetingUrl,
+      validated.status,
+    );
+  const record = database
+    .prepare("SELECT * FROM classes WHERE id = ?")
+    .get(result.lastInsertRowid);
+  return response.status(201).json({ class: serializeClass(record) });
+});
+
+app.patch("/api/admin/classes/:id", requireAdminKey, (request, response) => {
+  const classId = Number(request.params.id);
+  if (!Number.isInteger(classId) || classId < 1)
+    return response.status(400).json({ error: "Invalid class ID." });
+  const existing = database
+    .prepare("SELECT * FROM classes WHERE id = ?")
+    .get(classId);
+  if (!existing)
+    return response.status(404).json({ error: "Class not found." });
+  const validated = validateClassPayload({
+    courseId: request.body?.courseId ?? existing.course_id,
+    instructorSourceName:
+      request.body?.instructorSourceName ?? existing.instructor_source_name,
+    startDate: request.body?.startDate ?? existing.start_date,
+    time: request.body?.time ?? existing.time,
+    duration: request.body?.duration ?? existing.duration,
+    meetingUrl: request.body?.meetingUrl ?? existing.meeting_url,
+    status: request.body?.status ?? existing.status,
+  });
+  if (validated.error)
+    return response.status(400).json({ error: validated.error });
+  database
+    .prepare(
+      `
+    UPDATE classes SET course_id = ?, instructor_source_name = ?, start_date = ?, time = ?, duration = ?, meeting_url = ?, status = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `,
+    )
+    .run(
+      validated.courseId,
+      validated.instructorSourceName,
+      validated.startDate,
+      validated.time,
+      validated.duration,
+      validated.meetingUrl,
+      validated.status,
+      classId,
+    );
+  const record = database
+    .prepare("SELECT * FROM classes WHERE id = ?")
+    .get(classId);
+  return response.json({ class: serializeClass(record) });
+});
 
 if (production) {
   const distDir = path.join(projectDir, "dist");

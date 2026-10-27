@@ -6,23 +6,13 @@ const useCourses = () => {
 
   useEffect(() => {
     let mounted = true;
-    fetch("/api/instructors")
+    fetch("/api/courses")
       .then(async (response) => {
         if (!response.ok) return null;
         return response.json();
       })
       .then((result) => {
-        if (!mounted || !result?.instructors) return;
-        const instructorNames = new Map(
-          result.instructors.map(({ sourceName, name }) => [sourceName, name]),
-        );
-        setCourses(
-          courseCatalog.map((course) => ({
-            ...course,
-            instructor:
-              instructorNames.get(course.instructor) ?? course.instructor,
-          })),
-        );
+        if (mounted && result?.courses) setCourses(result.courses);
       })
       .catch(() => {
         // Use the bundled course data if the API is temporarily unavailable.
