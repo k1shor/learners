@@ -12,9 +12,12 @@ const AdminStudentsPage = () => {
   );
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentForm, setStudentForm] = useState({ name: "", email: "" });
+  const [isEditingStudent, setIsEditingStudent] = useState(false);
+  const [isSavingStudent, setIsSavingStudent] = useState(false);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(isLocalDevelopment);
   const [busyStudentId, setBusyStudentId] = useState(null);
 
   const adminHeaders = (key) =>
@@ -35,10 +38,19 @@ const AdminStudentsPage = () => {
   useEffect(() => {
     if (!isLocalDevelopment) return undefined;
     let active = true;
-    setIsLoading(true);
-    requestStudents("")
+    fetch("/api/admin/students")
+      .then(async (response) => {
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result.error || "Could not load students.");
+        }
+        return result.students;
+      })
       .then((loadedStudents) => {
-        if (active) setStudents(loadedStudents);
+        if (active) {
+          setStudents(loadedStudents);
+          setError("");
+        }
       })
       .catch((requestError) => {
         if (active) setError(requestError.message);
@@ -90,9 +102,55 @@ const AdminStudentsPage = () => {
       if (!response.ok)
         throw new Error(result.error || "Could not load student.");
       setSelectedStudent(result.student);
+      setStudentForm({
+        name: result.student.name,
+        email: result.student.email,
+      });
+      setIsEditingStudent(false);
       setError("");
+      return result.student;
     } catch (requestError) {
       setError(requestError.message);
+      return null;
+    }
+  };
+
+  const saveStudentInfo = async (event) => {
+    event.preventDefault();
+    if (!selectedStudent) return;
+    setIsSavingStudent(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/students/${selectedStudent.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...adminHeaders(authorizedKey),
+          },
+          body: JSON.stringify(studentForm),
+        },
+      );
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "Could not save student information.");
+      }
+      setStudents((current) =>
+        current.map((student) =>
+          student.id === result.student.id ? result.student : student,
+        ),
+      );
+      setSelectedStudent(result.student);
+      setStudentForm({
+        name: result.student.name,
+        email: result.student.email,
+      });
+      setIsEditingStudent(false);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsSavingStudent(false);
     }
   };
 
@@ -325,6 +383,16 @@ const AdminStudentsPage = () => {
                         </button>
                         <button
                           type="button"
+                          onClick={async () => {
+                            const loadedStudent = await viewStudent(student.id);
+                            if (loadedStudent) setIsEditingStudent(true);
+                          }}
+                          className="rounded-lg bg-[#173c35] px-3 py-2 text-xs font-semibold text-white hover:bg-[#28584a]"
+                        >
+                          Edit info
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => toggleStudentStatus(student)}
                           disabled={busyStudentId === student.id}
                           className={`rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-60 ${student.isActive ? "bg-[#f8e7e2] text-[#9b3d2c] hover:bg-[#f2d8d0]" : "bg-[#e4efda] text-[#355c4c] hover:bg-[#d7e8c8]"}`}
@@ -367,7 +435,9 @@ const AdminStudentsPage = () => {
                   id="student-info-title"
                   className="mt-1 text-2xl font-bold text-[#173c35]"
                 >
-                  {selectedStudent.name}
+                  {isEditingStudent
+                    ? "Edit student information"
+                    : selectedStudent.name}
                 </h2>
               </div>
               <button
@@ -379,53 +449,128 @@ const AdminStudentsPage = () => {
                 ×
               </button>
             </div>
-            <dl className="mt-6 grid gap-4 rounded-xl bg-[#f7f5ef] p-4 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-xs text-[#78877b]">Student ID</dt>
-                <dd className="mt-1 font-semibold text-[#203832]">
-                  {selectedStudent.id}
-                </dd>
+            {isEditingStudent ? (
+              <form onSubmit={saveStudentInfo} className="mt-6 space-y-4">
+                <label className="block text-sm font-semibold text-[#29483f]">
+                  Full name
+                  <input
+                    required
+                    minLength={2}
+                    maxLength={80}
+                    value={studentForm.name}
+                    onChange={(event) =>
+                      setStudentForm((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                    className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d9d4c7] bg-white px-3.5 py-2 font-normal text-[#203832] outline-none focus:border-[#63824d] focus:ring-2 focus:ring-[#e4efda]"
+                  />
+                </label>
+                <label className="block text-sm font-semibold text-[#29483f]">
+                  Email address
+                  <input
+                    required
+                    type="email"
+                    maxLength={254}
+                    value={studentForm.email}
+                    onChange={(event) =>
+                      setStudentForm((current) => ({
+                        ...current,
+                        email: event.target.value,
+                      }))
+                    }
+                    className="mt-1.5 min-h-11 w-full rounded-xl border border-[#d9d4c7] bg-white px-3.5 py-2 font-normal text-[#203832] outline-none focus:border-[#63824d] focus:ring-2 focus:ring-[#e4efda]"
+                  />
+                </label>
+                {error && (
+                  <p role="alert" className="text-sm text-[#9b3d2c]">
+                    {error}
+                  </p>
+                )}
+                <div className="flex justify-end gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingStudent(false)}
+                    className="min-h-10 rounded-lg px-4 text-sm font-semibold text-[#53685e] hover:bg-[#f5f3ec]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingStudent}
+                    className="min-h-10 rounded-xl bg-[#173c35] px-4 text-sm font-semibold text-white hover:bg-[#28584a] disabled:opacity-60"
+                  >
+                    {isSavingStudent ? "Saving…" : "Save changes"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <dl className="mt-6 grid gap-4 rounded-xl bg-[#f7f5ef] p-4 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-xs text-[#78877b]">Student ID</dt>
+                  <dd className="mt-1 font-semibold text-[#203832]">
+                    {selectedStudent.id}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#78877b]">Account status</dt>
+                  <dd className="mt-1 font-semibold text-[#203832]">
+                    {selectedStudent.isActive ? "Active" : "Disabled"}
+                  </dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-[#78877b]">Email address</dt>
+                  <dd className="mt-1 break-all font-semibold text-[#203832]">
+                    {selectedStudent.email}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#78877b]">Joined</dt>
+                  <dd className="mt-1 font-semibold text-[#203832]">
+                    {formatDate(selectedStudent.createdAt)}
+                  </dd>
+                </div>
+              </dl>
+            )}
+            {!isEditingStudent && (
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedStudent(null)}
+                  className="min-h-10 rounded-lg px-4 text-sm font-semibold text-[#53685e] hover:bg-[#f5f3ec]"
+                >
+                  Close
+                </button>
+                {!isEditingStudent && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStudentForm({
+                        name: selectedStudent.name,
+                        email: selectedStudent.email,
+                      });
+                      setIsEditingStudent(true);
+                    }}
+                    className="min-h-10 rounded-xl bg-[#173c35] px-4 text-sm font-semibold text-white hover:bg-[#28584a]"
+                  >
+                    Edit info
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => toggleStudentStatus(selectedStudent)}
+                  disabled={busyStudentId === selectedStudent.id}
+                  className={`min-h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:opacity-60 ${selectedStudent.isActive ? "bg-[#9b3d2c] hover:bg-[#813322]" : "bg-[#28584a] hover:bg-[#173c35]"}`}
+                >
+                  {busyStudentId === selectedStudent.id
+                    ? "Saving…"
+                    : selectedStudent.isActive
+                      ? "Disable student"
+                      : "Enable student"}
+                </button>
               </div>
-              <div>
-                <dt className="text-xs text-[#78877b]">Account status</dt>
-                <dd className="mt-1 font-semibold text-[#203832]">
-                  {selectedStudent.isActive ? "Active" : "Disabled"}
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs text-[#78877b]">Email address</dt>
-                <dd className="mt-1 break-all font-semibold text-[#203832]">
-                  {selectedStudent.email}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[#78877b]">Joined</dt>
-                <dd className="mt-1 font-semibold text-[#203832]">
-                  {formatDate(selectedStudent.createdAt)}
-                </dd>
-              </div>
-            </dl>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedStudent(null)}
-                className="min-h-10 rounded-lg px-4 text-sm font-semibold text-[#53685e] hover:bg-[#f5f3ec]"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleStudentStatus(selectedStudent)}
-                disabled={busyStudentId === selectedStudent.id}
-                className={`min-h-10 rounded-xl px-4 text-sm font-semibold text-white disabled:opacity-60 ${selectedStudent.isActive ? "bg-[#9b3d2c] hover:bg-[#813322]" : "bg-[#28584a] hover:bg-[#173c35]"}`}
-              >
-                {busyStudentId === selectedStudent.id
-                  ? "Saving…"
-                  : selectedStudent.isActive
-                    ? "Disable student"
-                    : "Enable student"}
-              </button>
-            </div>
+            )}
           </section>
         </div>
       )}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import courses from "../data/courses.json";
 import { getTaskProgress, readTaskProgressStore } from "../utils/taskProgress";
 import categoryTheme from "../utils/categoryTheme";
+import useCourses from "../hooks/useCourses";
 
 const formatCompletionDate = (date) =>
   date ? new Date(date).toLocaleDateString() : "";
@@ -92,6 +92,7 @@ const downloadCertificate = async (course, completedAt, learnerName) => {
 };
 
 const CertificatesPage = () => {
+  const courses = useCourses();
   const { user } = useOutletContext();
   const learnerName = user?.name ?? "Learner";
   const [selectedCourse, setSelectedCourse] = useState(null);

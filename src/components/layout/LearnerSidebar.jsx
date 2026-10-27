@@ -85,6 +85,18 @@ const LearnerSidebar = ({ user }) => {
         >
           Students
         </NavLink>
+        <NavLink
+          to="/admin/instructors"
+          className={({ isActive }) =>
+            `mt-1 inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition sm:flex ${
+              isActive
+                ? "bg-[#173c35] font-semibold text-[#fffefa] shadow-sm"
+                : "text-[#53685e] hover:bg-[#fffefa] hover:text-[#173c35]"
+            }`
+          }
+        >
+          Teachers &amp; instructors
+        </NavLink>
       </div>
     </aside>
   );

@@ -6,6 +6,8 @@ During local development, the admin panel opens directly at `/admin/students` wi
 
 Configure `ADMIN_API_KEY` only for production and never use a short or guessable value there.
 
+The instructor directory is at `/admin/instructors`. It contains the five course instructors plus five Nepali demo instructors, lists assigned courses and status, supports profile detail views, and lets admins edit an instructor's name, email, and bio or disable/re-enable the profile. Saved names are reflected on course cards, course details, tasks, and certificates. Run `node server/seed-demo-instructors.js` to add the demo instructor records to an existing local database.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

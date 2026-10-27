@@ -6,6 +6,7 @@ import SectionPage from "./pages/SectionPage";
 import TasksPage from "./pages/TasksPage";
 import Layout from "./components/layout/Layout";
 import AdminStudentsPage from "./admin/AdminStudentsPage";
+import AdminInstructorsPage from "./admin/AdminInstructorsPage";
 
 const MyRoutes = () => {
   return (
@@ -22,6 +23,7 @@ const MyRoutes = () => {
           <Route path="referrals" element={<SectionPage title="Referrals" />} />
           <Route path="payments" element={<SectionPage title="Payments" />} />
           <Route path="admin/students" element={<AdminStudentsPage />} />
+          <Route path="admin/instructors" element={<AdminInstructorsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

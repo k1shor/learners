@@ -1,8 +1,9 @@
 import { Link, useParams } from "react-router-dom";
-import courses from "../data/courses.json";
 import { getTaskProgress } from "../utils/taskProgress";
+import useCourses from "../hooks/useCourses";
 
 const CourseDetails = () => {
+  const courses = useCourses();
   const { courseCode, courseTitle } = useParams();
   const course = courses.find(
     (item) => item.course_code === courseCode && item.title === courseTitle,

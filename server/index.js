@@ -38,9 +38,76 @@ database.exec(`
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at INTEGER NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS instructors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    bio TEXT NOT NULL DEFAULT '',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
   CREATE INDEX IF NOT EXISTS sessions_expiration_idx ON sessions(expires_at);
   CREATE INDEX IF NOT EXISTS password_reset_expiration_idx ON password_reset_tokens(expires_at);
 `);
+
+const courseCatalog = JSON.parse(
+  fs.readFileSync(path.join(projectDir, "src", "data", "courses.json"), "utf8"),
+);
+const instructorColumns = database
+  .prepare("PRAGMA table_info(instructors)")
+  .all();
+if (!instructorColumns.some((column) => column.name === "is_active")) {
+  database.exec(
+    "ALTER TABLE instructors ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1",
+  );
+}
+const demoInstructors = [
+  [
+    "Demo Instructor: Ritu Maharjan",
+    "Ritu Maharjan",
+    "ritu.maharjan@example.test",
+    "Nepali language and literature instructor.",
+  ],
+  [
+    "Demo Instructor: Kiran Bista",
+    "Kiran Bista",
+    "kiran.bista@example.test",
+    "Science and mathematics instructor.",
+  ],
+  [
+    "Demo Instructor: Pooja KC",
+    "Pooja KC",
+    "pooja.kc@example.test",
+    "Business and communication instructor.",
+  ],
+  [
+    "Demo Instructor: Nabin Lama",
+    "Nabin Lama",
+    "nabin.lama@example.test",
+    "Technology and digital skills instructor.",
+  ],
+  [
+    "Demo Instructor: Manisha Joshi",
+    "Manisha Joshi",
+    "manisha.joshi@example.test",
+    "Creative arts and writing instructor.",
+  ],
+];
+const seedInstructor = database.prepare(
+  "INSERT OR IGNORE INTO instructors (source_name, name, email, bio) VALUES (?, ?, ?, ?)",
+);
+const seedInstructors = database.transaction(() => {
+  for (const sourceName of new Set(
+    courseCatalog.map((course) => course.instructor),
+  )) {
+    seedInstructor.run(sourceName, sourceName, "", "");
+  }
+  for (const instructor of demoInstructors) {
+    seedInstructor.run(...instructor);
+  }
+});
+seedInstructors();
 
 const userColumns = database.prepare("PRAGMA table_info(users)").all();
 if (!userColumns.some((column) => column.name === "is_active")) {
@@ -216,6 +283,19 @@ const adminStudent = (student) => ({
   email: student.email,
   createdAt: student.created_at,
   isActive: Boolean(student.is_active),
+});
+
+const serializeInstructor = (instructor) => ({
+  id: instructor.id,
+  sourceName: instructor.source_name,
+  name: instructor.name,
+  email: instructor.email,
+  bio: instructor.bio,
+  isActive: Boolean(instructor.is_active),
+  updatedAt: instructor.updated_at,
+  courses: courseCatalog
+    .filter((course) => course.instructor === instructor.source_name)
+    .map(({ course_code, title }) => ({ courseCode: course_code, title })),
 });
 
 app.get("/api/health", (_request, response) => response.json({ ok: true }));
@@ -468,35 +548,177 @@ app.get("/api/admin/students/:id", requireAdminKey, (request, response) => {
 app.patch("/api/admin/students/:id", requireAdminKey, (request, response) => {
   const studentId = Number(request.params.id);
   const isActive = request.body?.isActive;
+  const name = request.body?.name;
+  const email = request.body?.email;
   if (!Number.isInteger(studentId) || studentId < 1) {
     return response.status(400).json({ error: "Invalid student ID." });
   }
-  if (typeof isActive !== "boolean") {
+  if (isActive !== undefined && typeof isActive !== "boolean") {
     return response
       .status(400)
       .json({ error: "isActive must be true or false." });
   }
-
-  const updateStudent = database.transaction(() => {
-    const result = database
-      .prepare("UPDATE users SET is_active = ? WHERE id = ?")
-      .run(Number(isActive), studentId);
-    if (result.changes === 0) return null;
-    if (!isActive) {
-      database.prepare("DELETE FROM sessions WHERE user_id = ?").run(studentId);
-    }
-    return database
-      .prepare(
-        "SELECT id, name, email, created_at, is_active FROM users WHERE id = ?",
-      )
-      .get(studentId);
-  });
-  const student = updateStudent();
-  if (!student) {
-    return response.status(404).json({ error: "Student not found." });
+  if (
+    name !== undefined &&
+    (typeof name !== "string" ||
+      name.trim().length < 2 ||
+      name.trim().length > 80)
+  ) {
+    return response
+      .status(400)
+      .json({ error: "Name must be between 2 and 80 characters." });
   }
-  return response.json({ student: adminStudent(student) });
+  if (
+    email !== undefined &&
+    (typeof email !== "string" ||
+      email.trim().length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+  ) {
+    return response.status(400).json({ error: "Enter a valid email address." });
+  }
+
+  try {
+    const updateStudent = database.transaction(() => {
+      const currentStudent = database
+        .prepare("SELECT * FROM users WHERE id = ?")
+        .get(studentId);
+      if (!currentStudent) return null;
+      const nextIsActive = isActive ?? Boolean(currentStudent.is_active);
+      database
+        .prepare(
+          "UPDATE users SET name = ?, email = ?, is_active = ? WHERE id = ?",
+        )
+        .run(
+          name === undefined ? currentStudent.name : name.trim(),
+          email === undefined
+            ? currentStudent.email
+            : email.trim().toLowerCase(),
+          Number(nextIsActive),
+          studentId,
+        );
+      if (!nextIsActive) {
+        database
+          .prepare("DELETE FROM sessions WHERE user_id = ?")
+          .run(studentId);
+      }
+      return database
+        .prepare(
+          "SELECT id, name, email, created_at, is_active FROM users WHERE id = ?",
+        )
+        .get(studentId);
+    });
+    const student = updateStudent();
+    if (!student) {
+      return response.status(404).json({ error: "Student not found." });
+    }
+    return response.json({ student: adminStudent(student) });
+  } catch (error) {
+    if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return response
+        .status(409)
+        .json({
+          error: "That email address is already used by another student.",
+        });
+    }
+    console.error("Could not update student:", error);
+    return response.status(500).json({ error: "Could not update student." });
+  }
 });
+
+app.get("/api/instructors", (_request, response) => {
+  const instructors = database
+    .prepare(
+      "SELECT source_name, name, is_active FROM instructors ORDER BY name COLLATE NOCASE",
+    )
+    .all()
+    .map(({ source_name, name, is_active }) => ({
+      sourceName: source_name,
+      name: is_active ? name : "Instructor unavailable",
+    }));
+  return response.json({ instructors });
+});
+
+app.get("/api/admin/instructors", requireAdminKey, (_request, response) => {
+  const instructors = database
+    .prepare("SELECT * FROM instructors ORDER BY name COLLATE NOCASE")
+    .all()
+    .map(serializeInstructor);
+  return response.json({ instructors });
+});
+
+app.get("/api/admin/instructors/:id", requireAdminKey, (request, response) => {
+  const instructorId = Number(request.params.id);
+  if (!Number.isInteger(instructorId) || instructorId < 1) {
+    return response.status(400).json({ error: "Invalid instructor ID." });
+  }
+  const instructor = database
+    .prepare("SELECT * FROM instructors WHERE id = ?")
+    .get(instructorId);
+  if (!instructor) {
+    return response.status(404).json({ error: "Instructor not found." });
+  }
+  return response.json({ instructor: serializeInstructor(instructor) });
+});
+
+app.patch(
+  "/api/admin/instructors/:id",
+  requireAdminKey,
+  (request, response) => {
+    const instructorId = Number(request.params.id);
+    const name =
+      typeof request.body?.name === "string" ? request.body.name.trim() : "";
+    const email =
+      typeof request.body?.email === "string" ? request.body.email.trim() : "";
+    const bio =
+      typeof request.body?.bio === "string" ? request.body.bio.trim() : "";
+    const isActive = request.body?.isActive;
+    if (!Number.isInteger(instructorId) || instructorId < 1) {
+      return response.status(400).json({ error: "Invalid instructor ID." });
+    }
+    if (name.length < 2 || name.length > 80) {
+      return response
+        .status(400)
+        .json({ error: "Name must be between 2 and 80 characters." });
+    }
+    if (
+      email.length > 254 ||
+      (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    ) {
+      return response
+        .status(400)
+        .json({ error: "Enter a valid email address." });
+    }
+    if (bio.length > 500) {
+      return response
+        .status(400)
+        .json({ error: "Bio must be 500 characters or fewer." });
+    }
+    if (isActive !== undefined && typeof isActive !== "boolean") {
+      return response
+        .status(400)
+        .json({ error: "isActive must be true or false." });
+    }
+
+    const result = database
+      .prepare(
+        "UPDATE instructors SET name = ?, email = ?, bio = ?, is_active = COALESCE(?, is_active), updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      )
+      .run(
+        name,
+        email,
+        bio,
+        isActive === undefined ? null : Number(isActive),
+        instructorId,
+      );
+    if (result.changes === 0) {
+      return response.status(404).json({ error: "Instructor not found." });
+    }
+    const instructor = database
+      .prepare("SELECT * FROM instructors WHERE id = ?")
+      .get(instructorId);
+    return response.json({ instructor: serializeInstructor(instructor) });
+  },
+);
 
 if (production) {
   const distDir = path.join(projectDir, "dist");

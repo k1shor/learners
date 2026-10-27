@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import courses from "../data/courses.json";
 import TaskCourseCard from "../components/TaskCourseCard";
+import useCourses from "../hooks/useCourses";
 import {
   getTaskProgress,
   readTaskProgressStore,
@@ -9,6 +9,7 @@ import {
 } from "../utils/taskProgress";
 
 const TasksPage = () => {
+  const courses = useCourses();
   const [progressStore, setProgressStore] = useState(readTaskProgressStore);
   const allTasks = courses.reduce(
     (total, course) => total + (course.assignments?.length ?? 0),

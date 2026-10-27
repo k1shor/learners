@@ -1,7 +1,7 @@
-import courses from "../data/courses.json";
 import { Link } from "react-router-dom";
 import { getTaskProgress, readTaskProgressStore } from "../utils/taskProgress";
 import categoryTheme from "../utils/categoryTheme";
+import useCourses from "../hooks/useCourses";
 
 const categoryIcons = {
   Marketing: "↗",
@@ -10,6 +10,7 @@ const categoryIcons = {
 };
 
 const Courses = () => {
+  const courses = useCourses();
   const progressStore = readTaskProgressStore();
 
   return (
