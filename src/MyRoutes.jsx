@@ -12,6 +12,13 @@ import SignIn from './pages/student_dashboard/login/SignIn'
 import TeacherDashboard from './pages/teacher_dashboard/TeacherDashboard'
 import Layout from './component/layout/public/Layout'
 import SidebarLayout from './component/sidebar/SidebarLayout'
+import AdminSidebarLayout from './component/sidebar/AdminSidebarLayout'
+import AdminDashboard from './pages/admin_dashboard/AdminDashboard'
+import Students from './pages/admin_dashboard/Students'
+import Teachers from './pages/admin_dashboard/Teachers'
+import AdminCourses from './pages/admin_dashboard/Courses'
+import AdminClasses from './pages/admin_dashboard/Classes'
+import AdminPayments from './pages/admin_dashboard/Payments'
 
 const MyRoutes = () => {
     return (
@@ -31,6 +38,14 @@ const MyRoutes = () => {
                     <Route path='certification' element={<Certification />} />
                     <Route path='referral' element={<Referral />} />
                     <Route path='payment' element={<Payment />} />
+                </Route>
+                <Route path='/admin-dashboard' element={<AdminSidebarLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path='students' element={<Students />} />
+                    <Route path='teachers' element={<Teachers />} />
+                    <Route path='courses' element={<AdminCourses />} />
+                    <Route path='classes' element={<AdminClasses />} />
+                    <Route path='payments' element={<AdminPayments />} />
                 </Route>
             </Routes>
         </BrowserRouter>
