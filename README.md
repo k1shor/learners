@@ -1,5 +1,11 @@
 # React + Vite
 
+## Admin student management
+
+During local development, the admin panel opens directly at `/admin/students` without a key. The development API listens only on localhost. In production, the panel requires a private random `ADMIN_API_KEY` of at least 32 characters. Disabled users cannot sign in and their existing sessions are revoked.
+
+Configure `ADMIN_API_KEY` only for production and never use a short or guessable value there.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

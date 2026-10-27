@@ -1,14 +1,13 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import courses from "../data/courses.json";
 import { getTaskProgress, readTaskProgressStore } from "../utils/taskProgress";
 import categoryTheme from "../utils/categoryTheme";
 
-const learnerName = "Aarav Shrestha";
-
 const formatCompletionDate = (date) =>
   date ? new Date(date).toLocaleDateString() : "";
 
-const downloadCertificate = async (course, completedAt) => {
+const downloadCertificate = async (course, completedAt, learnerName) => {
   const { jsPDF } = await import("jspdf");
   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -93,6 +92,8 @@ const downloadCertificate = async (course, completedAt) => {
 };
 
 const CertificatesPage = () => {
+  const { user } = useOutletContext();
+  const learnerName = user?.name ?? "Learner";
   const [selectedCourse, setSelectedCourse] = useState(null);
   const progressStore = readTaskProgressStore();
   const earnedCertificates = courses.filter(
@@ -253,7 +254,11 @@ const CertificatesPage = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      downloadCertificate(course, taskProgress.completedAt)
+                      downloadCertificate(
+                        course,
+                        taskProgress.completedAt,
+                        learnerName,
+                      )
                     }
                     disabled={!isEarned}
                     className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527f69] focus-visible:ring-offset-2 ${
@@ -377,6 +382,7 @@ const CertificatesPage = () => {
                       selectedCourse,
                       getTaskProgress(selectedCourse, progressStore)
                         .completedAt,
+                      learnerName,
                     )
                   }
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#173c35] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#28584a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527f69] focus-visible:ring-offset-2"
