@@ -40,6 +40,31 @@ coursesData.forEach((course) => {
   });
 });
 
+const getCourseStatusForAdmin = (course) => {
+  const startDate = new Date(course["Start-date"]);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + course.durationWeeks * 7);
+  const now = new Date();
+
+  if (now < startDate) return "Pending";
+  if (now <= endDate) return "Ongoing";
+  return "Completed";
+};
+
+const courseRows = coursesData.map((course) => ({
+  course: course.Title,
+  courseCode: course["Course-Code"],
+  instructor: course.Instructor,
+  status: getCourseStatusForAdmin(course),
+}));
+
+const classRows = coursesData.map((course) => ({
+  class: `${course["Course-Code"]} Session`,
+  course: course.Title,
+  schedule: `${course["Start-date"]} • ${course.Time}`,
+  instructor: course.Instructor,
+}));
+
 const sections = [
   {
     id: "students",
@@ -75,7 +100,7 @@ const sections = [
       { key: "instructor", label: "Instructor" },
       { key: "status", label: "Status" },
     ],
-    rows: [],
+    rows: courseRows,
   },
   {
     id: "classes",
@@ -87,7 +112,7 @@ const sections = [
       { key: "schedule", label: "Schedule" },
       { key: "instructor", label: "Instructor" },
     ],
-    rows: [],
+    rows: classRows,
   },
   {
     id: "payment",
@@ -451,19 +476,68 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td
-                      colSpan={section.columns.length}
-                      className="px-5 py-14 text-center"
-                    >
-                      <h3 className="font-semibold text-slate-800">
-                        No {section.label.toLowerCase()} to display
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {section.label} records will appear here when available.
-                      </p>
-                    </td>
-                  </tr>
+                  {section.rows.length > 0 ? (
+                    section.rows.map((row, index) => (
+                      <tr
+                        key={
+                          row.course ??
+                          row.class ??
+                          row.student ??
+                          row.instructor ??
+                          `${section.id}-${index}`
+                        }
+                        className="border-t border-slate-100 align-top"
+                      >
+                        {section.columns.map(({ key }) => {
+                          const value = row[key];
+                          const displayValue = Array.isArray(value)
+                            ? value.join(", ")
+                            : value ?? "—";
+
+                          if (key === "status") {
+                            const tone =
+                              displayValue === "Ongoing"
+                                ? "bg-blue-100 text-blue-700 border-blue-200"
+                                : displayValue === "Completed"
+                                  ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+                                  : displayValue === "Pending"
+                                    ? "bg-amber-100 text-amber-700 border-amber-200"
+                                    : "bg-slate-100 text-slate-700 border-slate-200";
+
+                            return (
+                              <td key={key} className="px-5 py-3 text-sm">
+                                <span
+                                  className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}
+                                >
+                                  {displayValue}
+                                </span>
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={key} className="px-5 py-3 text-sm text-slate-700">
+                              {displayValue}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={section.columns.length}
+                        className="px-5 py-14 text-center"
+                      >
+                        <h3 className="font-semibold text-slate-800">
+                          No {section.label.toLowerCase()} to display
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {section.label} records will appear here when available.
+                        </p>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
