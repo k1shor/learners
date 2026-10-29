@@ -1,5 +1,5 @@
-import AdminUpcomingPage from './AdminUpcomingPage'
+import PeopleManagementPage from './PeopleManagementPage'
 
-const Students = () => <AdminUpcomingPage title="Students" />
+const Students = () => <PeopleManagementPage type="students" />
 
 export default Students
