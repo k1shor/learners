@@ -52,16 +52,6 @@ const PeopleManagementPage = ({ type }) => {
     if (selectedPerson?.id === person.id) setSelectedPerson({ ...person, status: nextStatus })
   }
 
-  const removePerson = (person) => {
-    const confirmed = window.confirm(`Permanently remove ${person.name} from the ${isTeacher ? 'instructor' : 'student'} directory?`)
-    if (!confirmed) return
-    updateData((currentData) => ({
-      ...currentData,
-      [type]: currentData[type].filter((item) => item.id !== person.id),
-    }))
-    if (selectedPerson?.id === person.id) setSelectedPerson(null)
-  }
-
   const detailItems = selectedPerson && [
     ['Account ID', selectedPerson.id],
     ['Email', selectedPerson.email || 'Not provided'],
@@ -113,7 +103,7 @@ const PeopleManagementPage = ({ type }) => {
                   <td className="px-5 py-4 text-slate-600">{person.subject || person.program || 'Not assigned'}</td>
                   <td className="px-5 py-4"><p className="font-medium text-slate-700">{person.email || 'No email'}</p><p className="mt-1 text-xs text-slate-500">{person.phone || 'No phone'}</p></td>
                   <td className="px-5 py-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${person.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{person.status}</span></td>
-                  <td className="px-5 py-4 text-right"><div className="inline-flex items-center gap-1"><button type="button" onClick={() => setSelectedPerson(person)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50">Details</button><button type="button" onClick={() => toggleStatus(person)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50">{person.status === 'Active' ? 'Disable' : 'Activate'}</button><button type="button" onClick={() => removePerson(person)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50">Remove</button></div></td>
+                  <td className="px-5 py-4 text-right"><div className="inline-flex items-center gap-1"><button type="button" onClick={() => setSelectedPerson(person)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-50">Details</button><button type="button" onClick={() => toggleStatus(person)} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-50">{person.status === 'Active' ? 'Disable' : 'Activate'}</button></div></td>
                 </tr>
               ))}
               {filteredPeople.length === 0 && <tr><td colSpan="5" className="px-5 py-12 text-center text-sm text-slate-500">No {isTeacher ? 'instructors' : 'students'} match your search.</td></tr>}

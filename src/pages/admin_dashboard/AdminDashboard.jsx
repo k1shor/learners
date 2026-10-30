@@ -47,7 +47,7 @@ const AdminDashboard = () => {
       <section aria-labelledby="management-title">
         <div className="mb-4">
           <h2 id="management-title" className="text-xl font-bold text-slate-900">Dashboard sections</h2>
-          <p className="mt-1 text-sm text-slate-500">Other sections are coming soon.</p>
+          <p className="mt-1 text-sm text-slate-500">Open a section to manage your learning platform.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           {shortcuts.map((item) => (
