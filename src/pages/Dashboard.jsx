@@ -65,6 +65,9 @@ const Dashboard = () => {
               <span>{name}</span>
             </button>
           ))}
+          <Link className="sidebar-link" to="/admin">
+            <span>Admin</span>
+          </Link>
         </nav>
       </aside>
 
