@@ -14,6 +14,7 @@ export default function Layout({ children }) {
   const [userName, setUserName] = useState("John Doe");
   const [activeTab, setActiveTab] = useState("courses");
   const [tabVersion, setTabVersion] = useState(0);
+  const [loginRole, setLoginRole] = useState("student");
 
   // Authentication Modal States
   const [authModal, setAuthModal] = useState(null); // 'login' | 'signup' | null
@@ -49,12 +50,14 @@ export default function Layout({ children }) {
     if (signupName.trim()) {
       setUserName(signupName);
     }
+    setLoginRole("student");
     setIsLoggedIn(true);
     setAuthModal(null);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setLoginRole("student");
   };
 
   const renderTabContent = () => {
@@ -68,11 +71,15 @@ export default function Layout({ children }) {
       case "referrals":
         return <ReferralPage userName={userName} />;
       case "payment":
-        return <PaymentPage />;
+        return <PaymentPage userName={userName} />;
       default:
         return children;
     }
   };
+
+  if (isLoggedIn && loginRole === "teacher") {
+    return null;
+  }
 
   return (
     <div className="w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50 relative">
@@ -169,6 +176,28 @@ export default function Layout({ children }) {
               </button>
             </div>
             <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4">
+              <fieldset>
+                <legend className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Log in as
+                </legend>
+                <div className="grid grid-cols-2 gap-2">
+                  {["student", "teacher"].map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      aria-pressed={loginRole === role}
+                      onClick={() => setLoginRole(role)}
+                      className={`rounded-lg border px-3 py-2.5 text-sm font-semibold capitalize transition-colors ${
+                        loginRole === role
+                          ? "border-indigo-600 bg-indigo-50 text-indigo-800"
+                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                   Email Address

@@ -51,19 +51,42 @@ const getCourseStatusForAdmin = (course) => {
   return "Completed";
 };
 
-const courseRows = coursesData.map((course) => ({
+const initialCourseRows = coursesData.map((course) => ({
   course: course.Title,
   courseCode: course["Course-Code"],
   instructor: course.Instructor,
   status: getCourseStatusForAdmin(course),
+  enabled: true,
 }));
 
-const classRows = coursesData.map((course) => ({
+const initialClassRows = coursesData.map((course) => ({
   class: `${course["Course-Code"]} Session`,
+  courseCode: course["Course-Code"],
   course: course.Title,
   schedule: `${course["Start-date"]} • ${course.Time}`,
   instructor: course.Instructor,
+  students: course.participants.length,
+  status: getCourseStatusForAdmin(course),
 }));
+
+const coursePrices = {
+  CS101: 299,
+  CS201: 349,
+  DS105: 249,
+  CS301: 499,
+  CS202: 399,
+};
+
+const initialPayments = coursesData.flatMap((course, courseIndex) =>
+  course.participants.map((participant, participantIndex) => ({
+    transaction: `ELH-${course["Course-Code"]}-${String(participantIndex + 1).padStart(3, "0")}`,
+    student: participant.name,
+    course: course.Title,
+    date: course["Start-date"],
+    amount: coursePrices[course["Course-Code"]],
+    status: (courseIndex + participantIndex) % 3 === 0 ? "Pending" : "Paid",
+  })),
+);
 
 const sections = [
   {
@@ -99,8 +122,9 @@ const sections = [
       { key: "courseCode", label: "Course code" },
       { key: "instructor", label: "Instructor" },
       { key: "status", label: "Status" },
+      { key: "enabled", label: "Course access" },
     ],
-    rows: courseRows,
+    rows: initialCourseRows,
   },
   {
     id: "classes",
@@ -111,8 +135,10 @@ const sections = [
       { key: "course", label: "Course" },
       { key: "schedule", label: "Schedule" },
       { key: "instructor", label: "Instructor" },
+      { key: "students", label: "Students" },
+      { key: "status", label: "Status" },
     ],
-    rows: classRows,
+    rows: initialClassRows,
   },
   {
     id: "payment",
@@ -122,10 +148,11 @@ const sections = [
       { key: "transaction", label: "Transaction" },
       { key: "student", label: "Student" },
       { key: "date", label: "Date" },
+      { key: "course", label: "Course" },
       { key: "amount", label: "Amount" },
       { key: "status", label: "Status" },
     ],
-    rows: [],
+    rows: initialPayments,
   },
 ];
 
@@ -154,6 +181,17 @@ function StatCard({ label, value, detail, accent }) {
         />
       </div>
       <p className="mt-3 text-xs text-slate-500">{detail}</p>
+    </article>
+  );
+}
+
+function AdminPaymentSummary({ label, value }) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
     </article>
   );
 }
@@ -394,11 +432,286 @@ function DirectoryDashboard({ section, search, onSearchChange }) {
   );
 }
 
+function CourseClassDashboard({
+  section,
+  courses,
+  classes,
+  search,
+  onSearchChange,
+  onToggleCourse,
+}) {
+  const isCourses = section.id === "courses";
+  const records = isCourses ? courses : classes;
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredRecords = records.filter((record) =>
+    Object.values(record).join(" ").toLowerCase().includes(normalizedSearch),
+  );
+  const stats = isCourses
+    ? [
+        {
+          label: "Courses",
+          value: courses.length,
+          detail: "Courses in the learning catalog",
+          accent: "bg-indigo-500",
+        },
+        {
+          label: "Enabled",
+          value: courses.filter((course) => course.enabled).length,
+          detail: "Available to students",
+          accent: "bg-emerald-500",
+        },
+        {
+          label: "Students enrolled",
+          value: classes.reduce((total, item) => total + item.students, 0),
+          detail: "Across all courses",
+          accent: "bg-violet-500",
+        },
+      ]
+    : [
+        {
+          label: "Classes",
+          value: classes.length,
+          detail: "Scheduled course sessions",
+          accent: "bg-indigo-500",
+        },
+        {
+          label: "Upcoming",
+          value: classes.filter((item) => item.status === "Pending").length,
+          detail: "Sessions not yet started",
+          accent: "bg-amber-500",
+        },
+        {
+          label: "Students enrolled",
+          value: classes.reduce((total, item) => total + item.students, 0),
+          detail: "Across all class sessions",
+          accent: "bg-violet-500",
+        },
+      ];
+
+  return (
+    <div className="space-y-6">
+      <section className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-600 px-6 py-7 text-white shadow-md sm:px-8">
+        <div
+          aria-hidden="true"
+          className="absolute -right-12 -top-20 -z-10 h-64 w-64 rounded-full border-[32px] border-white/10"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute -bottom-24 right-36 -z-10 h-48 w-48 rounded-full bg-violet-400/20 blur-2xl"
+        />
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-100">
+          Admin catalog
+        </p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {isCourses ? "Manage your courses" : "Manage your classes"}
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">
+              {isCourses
+                ? "Browse course details, track enrollment, and control student access."
+                : "Review class schedules, instructors, enrollment, and availability."}
+            </p>
+          </div>
+          <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+            Demo data
+          </span>
+        </div>
+      </section>
+
+      <section
+        aria-label={`${section.label} summary`}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+      >
+        {stats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
+      </section>
+
+      <section>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              {isCourses ? "Course catalog" : "Class schedule"}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Showing {filteredRecords.length} of {records.length}{" "}
+              {isCourses ? "courses" : "classes"}
+            </p>
+          </div>
+          <label className="relative block w-full sm:max-w-sm">
+            <span className="sr-only">
+              Search {isCourses ? "courses" : "classes"}
+            </span>
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m16 16 4 4" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={`Search ${isCourses ? "courses" : "classes"}...`}
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+        </div>
+
+        {filteredRecords.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredRecords.map((record) => {
+              const isEnabled = record.enabled;
+              return (
+                <article
+                  key={isCourses ? record.courseCode : record.class}
+                  className="group flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                        {isCourses ? record.courseCode : record.class}
+                      </p>
+                      <h3 className="mt-1 font-semibold text-slate-900">
+                        {record.course}
+                      </h3>
+                    </div>
+                    <StatusBadge status={isEnabled ? record.status : "Disabled"} />
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        Instructor
+                      </p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {record.instructor}
+                      </p>
+                    </div>
+                    {isCourses ? (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                          Duration
+                        </p>
+                        <p className="mt-1 font-medium text-slate-700">
+                          {record.duration}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                          Students
+                        </p>
+                        <p className="mt-1 font-medium text-slate-700">
+                          {record.students} enrolled
+                        </p>
+                      </div>
+                    )}
+                    <div className="col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        {isCourses ? "Schedule" : "Class schedule"}
+                      </p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {isCourses
+                          ? `${record.startDate} · ${record.time}`
+                          : record.schedule}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isCourses && (
+                    <button
+                      type="button"
+                      aria-pressed={record.enabled}
+                      onClick={() => onToggleCourse(record.courseCode)}
+                      className={`mt-4 w-full rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                        record.enabled
+                          ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          : "bg-indigo-600 text-white hover:bg-indigo-700"
+                      }`}
+                    >
+                      {record.enabled ? "Disable course" : "Enable course"}
+                    </button>
+                  )}
+                  {!isCourses && !record.enabled && (
+                    <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                      This class is unavailable while its course is disabled.
+                    </p>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+            <h3 className="font-semibold text-slate-900">
+              No matching {isCourses ? "courses" : "classes"}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Try a different name, course code, instructor, or schedule.
+            </p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const tone =
+    status === "Ongoing"
+      ? "border-blue-200 bg-blue-50 text-blue-700"
+      : status === "Completed"
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : status === "Pending"
+          ? "border-amber-200 bg-amber-50 text-amber-700"
+          : "border-slate-200 bg-slate-100 text-slate-700";
+
+  return (
+    <span
+      className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}
+    >
+      {status}
+    </span>
+  );
+}
+
 export default function AdminPage() {
   const [activeSection, setActiveSection] = useState("students");
   const [search, setSearch] = useState("");
+  const [courseRows, setCourseRows] = useState(initialCourseRows);
+  const paymentRows = initialPayments;
   const section =
     sections.find((item) => item.id === activeSection) ?? sections[0];
+  const classRows = initialClassRows.map((classRow) => {
+    const course = courseRows.find(
+      (row) => row.courseCode === classRow.courseCode,
+    );
+    return {
+      ...classRow,
+      enabled: Boolean(course?.enabled),
+      status: course?.enabled ? classRow.status : "Disabled",
+    };
+  });
+  const tableRows = activeSection === "payment" ? paymentRows : section.rows;
+  const filteredTableRows = tableRows.filter((row) =>
+    Object.values(row)
+      .join(" ")
+      .toLowerCase()
+      .includes(search.trim().toLowerCase()),
+  );
+  const paidTotal = paymentRows
+    .filter((payment) => payment.status === "Paid")
+    .reduce((total, payment) => total + payment.amount, 0);
+  const pendingTotal = paymentRows
+    .filter((payment) => payment.status === "Pending")
+    .reduce((total, payment) => total + payment.amount, 0);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
@@ -455,10 +768,66 @@ export default function AdminPage() {
             search={search}
             onSearchChange={setSearch}
           />
+        ) : section.id === "courses" || section.id === "classes" ? (
+          <CourseClassDashboard
+            section={section}
+            courses={courseRows.map((course) => {
+              const source = coursesData.find(
+                (item) => item["Course-Code"] === course.courseCode,
+              );
+              return {
+                ...course,
+                duration: source.Duration,
+                startDate: source["Start-date"],
+                time: source.Time,
+                students: source.participants.length,
+              };
+            })}
+            classes={classRows}
+            search={search}
+            onSearchChange={setSearch}
+            onToggleCourse={(courseCode) =>
+              setCourseRows((currentRows) =>
+                currentRows.map((course) =>
+                  course.courseCode === courseCode
+                    ? { ...course, enabled: !course.enabled }
+                    : course,
+                ),
+              )
+            }
+          />
         ) : (
           <section className="overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-sm">
-            <div className="border-b border-indigo-100 px-5 py-4">
-              <h2 className="font-semibold text-slate-800">{section.label}</h2>
+            {activeSection === "payment" && (
+              <div className="grid gap-4 border-b border-indigo-100 bg-slate-50 p-5 sm:grid-cols-3">
+                <AdminPaymentSummary label="Transactions" value={paymentRows.length} />
+                <AdminPaymentSummary
+                  label="Paid"
+                  value={`$${paidTotal.toLocaleString("en-US")}`}
+                />
+                <AdminPaymentSummary
+                  label="Outstanding"
+                  value={`$${pendingTotal.toLocaleString("en-US")}`}
+                />
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 px-5 py-4">
+              <div>
+                <h2 className="font-semibold text-slate-800">{section.label}</h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Showing {filteredTableRows.length} of {tableRows.length} records
+                </p>
+              </div>
+              <label className="w-full sm:max-w-xs">
+                <span className="sr-only">Search {section.label}</span>
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={`Search ${section.label.toLowerCase()}...`}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                />
+              </label>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-max text-left text-sm">
@@ -476,12 +845,14 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {section.rows.length > 0 ? (
-                    section.rows.map((row, index) => (
+                  {filteredTableRows.length > 0 ? (
+                    filteredTableRows.map((row, index) => (
                       <tr
                         key={
-                          row.course ??
+                          row.transaction ??
                           row.class ??
+                          row.courseCode ??
+                          row.course ??
                           row.student ??
                           row.instructor ??
                           `${section.id}-${index}`
@@ -493,6 +864,33 @@ export default function AdminPage() {
                           const displayValue = Array.isArray(value)
                             ? value.join(", ")
                             : value ?? "—";
+
+                          if (key === "enabled") {
+                            return (
+                              <td key={key} className="px-5 py-3">
+                                <button
+                                  type="button"
+                                  aria-pressed={row.enabled}
+                                  onClick={() =>
+                                    setCourseRows((currentRows) =>
+                                      currentRows.map((course) =>
+                                        course.courseCode === row.courseCode
+                                          ? { ...course, enabled: !course.enabled }
+                                          : course,
+                                      ),
+                                    )
+                                  }
+                                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                    row.enabled
+                                      ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  {row.enabled ? "Disable" : "Enable"}
+                                </button>
+                              </td>
+                            );
+                          }
 
                           if (key === "status") {
                             const tone =
@@ -517,7 +915,9 @@ export default function AdminPage() {
 
                           return (
                             <td key={key} className="px-5 py-3 text-sm text-slate-700">
-                              {displayValue}
+                              {key === "amount"
+                                ? `$${Number(value).toLocaleString("en-US")}`
+                                : displayValue}
                             </td>
                           );
                         })}
@@ -530,10 +930,10 @@ export default function AdminPage() {
                         className="px-5 py-14 text-center"
                       >
                         <h3 className="font-semibold text-slate-800">
-                          No {section.label.toLowerCase()} to display
+                        No matching {section.label.toLowerCase()}
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
-                          {section.label} records will appear here when available.
+                        Try a different search, or clear the search field.
                         </p>
                       </td>
                     </tr>
