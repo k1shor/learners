@@ -7,19 +7,6 @@
   overflow: hidden;
 }
 
-.site-layout::before {
-  position: absolute;
-  z-index: -1;
-  top: 76px;
-  right: -160px;
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(224 215 255 / 48%) 0%, rgb(245 247 252 / 0%) 70%);
-  content: "";
-  pointer-events: none;
-}
-
 .site-header {
   position: relative;
   display: flex;
@@ -28,9 +15,9 @@
   justify-content: space-between;
   gap: 28px;
   padding: 0 clamp(24px, 7vw, 104px);
-  background: rgb(255 255 255 / 92%);
+  background: rgb(255 255 255 / 96%);
   border-bottom: 1px solid #e9edf6;
-  box-shadow: 0 4px 20px rgb(24 35 59 / 3%);
+  box-shadow: 0 3px 12px rgb(24 35 59 / 3%);
 }
 
 .site-brand {
@@ -53,8 +40,8 @@
   padding: 0 10px;
   border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 13px;
-  background: linear-gradient(145deg, #8b70ed 0%, #6254d6 55%, #4945b7 100%);
-  box-shadow: 0 5px 12px rgb(93 76 202 / 24%), inset 0 1px rgb(255 255 255 / 28%);
+  background: linear-gradient(145deg, #8870e8, #554bc1);
+  box-shadow: 0 4px 10px rgb(93 76 202 / 22%);
   transform: rotate(-3deg);
 }
 
@@ -81,7 +68,11 @@
 }
 
 .button {
+  display: inline-flex;
   min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   padding: 0 20px;
   border: 1px solid transparent;
   border-radius: 11px;
@@ -89,6 +80,8 @@
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
   transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -102,41 +95,69 @@
   outline-offset: 3px;
 }
 
+.button-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  transition: transform 160ms ease;
+}
+
 .button-login {
-  color: #39445c;
-  background: transparent;
-  border-color: #dfe4ef;
+  color: #fff;
+  background: linear-gradient(135deg, #40547a, #293b5b);
+  border-color: #273957;
+  box-shadow: 0 4px 10px rgb(35 53 82 / 14%);
 }
 
 .button-login:hover {
-  color: #3449c4;
-  background: #f7f8ff;
-  border-color: #c6cdf4;
+  color: #fff;
+  background: linear-gradient(135deg, #4b6088, #34496d);
+  border-color: #354a6e;
+  box-shadow: 0 4px 10px rgb(35 53 82 / 16%);
 }
 
 .button-logout {
-  color: #4b5ecf;
-  background: #f3f4ff;
-  border-color: #e4e7ff;
+  color: #754c65;
+  background: linear-gradient(135deg, #fff, #fff7fa);
+  border-color: #eedde5;
   text-decoration: none;
 }
 
 .button-logout:hover {
-  color: #fff;
-  background: linear-gradient(135deg, #6074ef 0%, #4358d0 100%);
-  border-color: transparent;
-  box-shadow: 0 6px 15px rgb(67 88 208 / 22%);
+  color: #8b3f5f;
+  background: linear-gradient(135deg, #fff8fa, #ffedf3);
+  border-color: #e8c6d4;
+  box-shadow: 0 7px 15px rgb(129 61 91 / 12%);
+}
+
+.button-login:hover .button-icon {
+  transform: translateX(2px);
+}
+
+.button-logout:hover .button-icon {
+  transform: translateX(2px);
+}
+
+.button-login:focus-visible,
+.button-logout:focus-visible,
+.button-signup:focus-visible {
+  outline: 3px solid #aab5ff;
+  outline-offset: 3px;
 }
 
 .button-signup {
   color: #fff;
-  background: linear-gradient(135deg, #8b70ed 0%, #5c53d3 100%);
-  box-shadow: 0 5px 12px rgb(93 76 202 / 21%), inset 0 1px rgb(255 255 255 / 25%);
+  background: linear-gradient(135deg, #8870e8, #554bc1);
+  box-shadow: 0 4px 10px rgb(93 76 202 / 20%);
 }
 
 .button-signup:hover {
-  background: linear-gradient(135deg, #765fe1 0%, #4943be 100%);
-  box-shadow: 0 8px 17px rgb(93 76 202 / 28%), inset 0 1px rgb(255 255 255 / 25%);
+  background: linear-gradient(135deg, #7961da, #4940ad);
+  box-shadow: 0 6px 13px rgb(93 76 202 / 24%);
 }
 
 .site-main {
@@ -151,7 +172,7 @@
   justify-content: center;
   padding: 18px 24px;
   color: #c5cbe0;
-  background: linear-gradient(110deg, #18233b 0%, #222f4b 55%, #1a2742 100%);
+  background: #202d45;
   border-top: 1px solid rgb(255 255 255 / 9%);
   font-size: 0.83rem;
   font-weight: 550;

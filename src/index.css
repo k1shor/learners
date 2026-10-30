@@ -15,8 +15,8 @@ body {
   font-family: Inter, "Aptos", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #18233b;
   background:
-    radial-gradient(ellipse at 87% 10%, rgb(222 232 255 / 62%), transparent 32rem),
-    radial-gradient(ellipse at 8% 84%, rgb(255 232 222 / 46%), transparent 30rem),
+    radial-gradient(ellipse at 88% 8%, rgb(222 232 255 / 46%), transparent 30rem),
+    radial-gradient(ellipse at 8% 88%, rgb(255 232 222 / 28%), transparent 28rem),
     #f7f8fc;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

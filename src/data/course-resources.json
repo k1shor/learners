@@ -1,0 +1,112 @@
+{
+  "WEB-101": {
+    "materials": ["HTML & CSS reference guide", "Responsive layout practice sheet", "Starter project files"],
+    "videos": [
+      { "title": "How the web works", "duration": "12 min" },
+      { "title": "Building your first page", "duration": "18 min" }
+    ],
+    "syllabus": [
+      { "title": "Web foundations", "topics": ["How websites work", "HTML document structure", "Semantic elements"] },
+      { "title": "Styling with CSS", "topics": ["Selectors and properties", "Color and typography", "The box model"] },
+      { "title": "Responsive web pages", "topics": ["Flexbox and grid", "Responsive layouts", "Project: build a landing page"] }
+    ],
+    "tasks": [
+      { "title": "Build a semantic landing page", "description": "Create a one-page website using semantic HTML, clear headings, and a polished CSS layout." },
+      { "title": "Design a responsive card section", "description": "Use Flexbox or Grid to build a mobile-friendly feature grid with balanced spacing and alignment." },
+      { "title": "Refine the page with styling details", "description": "Apply color, typography, and spacing decisions to create a more professional visual hierarchy." }
+    ],
+    "referral": {
+      "idealFor": "Beginners who want to understand how websites are built and create their first responsive page.",
+      "focusAreas": ["HTML & CSS", "Responsive layouts", "Web foundations"],
+      "invite": "Interested in building websites? Introduction to Web Development is a practical place to start, with HTML, CSS, and responsive page projects."
+    }
+  },
+  "DES-120": {
+    "materials": ["Design principles workbook", "User interview template", "Wireframe practice sheets"],
+    "videos": [
+      { "title": "Understanding the design process", "duration": "14 min" },
+      { "title": "From sketch to wireframe", "duration": "16 min" }
+    ],
+    "syllabus": [
+      { "title": "Design foundations", "topics": ["Visual hierarchy", "Color and type", "Design systems"] },
+      { "title": "Understanding users", "topics": ["User research", "Personas and journeys", "Accessibility basics"] },
+      { "title": "Prototyping and testing", "topics": ["Wireframes", "Interactive prototypes", "Usability testing"] }
+    ],
+    "tasks": [
+      { "title": "Create a mood board", "description": "Collect inspiration and define a visual direction using a consistent color palette and typography system." },
+      { "title": "Interview and summarize user needs", "description": "Conduct a short user interview, identify pain points, and turn findings into clear design insights." },
+      { "title": "Design a low-fidelity wireframe", "description": "Sketch a simple interface flow and present how users move through the experience." }
+    ],
+    "referral": {
+      "idealFor": "Creative thinkers interested in designing digital products around real user needs.",
+      "focusAreas": ["Visual design", "User research", "Prototyping"],
+      "invite": "Know someone who loves solving problems through design? UI/UX Design Fundamentals explores user research, wireframes, prototypes, and usability testing."
+    }
+  },
+  "PY-110": {
+    "materials": ["Python syntax quick reference", "Coding exercises", "Practice dataset"],
+    "videos": [
+      { "title": "Python setup and first program", "duration": "15 min" },
+      { "title": "Working with lists and loops", "duration": "20 min" }
+    ],
+    "syllabus": [
+      { "title": "Python essentials", "topics": ["Variables and data types", "Input and output", "Operators"] },
+      { "title": "Control flow and collections", "topics": ["Conditions", "Loops", "Lists and dictionaries"] },
+      { "title": "Functions and projects", "topics": ["Writing functions", "Reading and writing files", "Project: a command-line app"] }
+    ],
+    "tasks": [
+      { "title": "Write a calculator script", "description": "Build a Python program that accepts user input and performs basic arithmetic operations." },
+      { "title": "Analyze a data list", "description": "Use loops, conditions, and dictionaries to summarize patterns from a small sample dataset." },
+      { "title": "Create a command-line app", "description": "Develop a small project that reads inputs, processes data, and writes a useful output for the user." }
+    ],
+    "referral": {
+      "idealFor": "New programmers ready to learn practical coding skills and build small useful programs.",
+      "focusAreas": ["Python basics", "Control flow", "Functions & projects"],
+      "invite": "Want to start coding? Python Programming covers core Python concepts and guides learners toward building a command-line project."
+    }
+  },
+  "DA-205": {
+    "materials": ["Data analysis workflow guide", "Spreadsheet practice file", "Sample analysis dataset"],
+    "videos": [
+      { "title": "Asking questions with data", "duration": "13 min" },
+      { "title": "From raw data to clear charts", "duration": "19 min" }
+    ],
+    "syllabus": [
+      { "title": "Data analysis foundations", "topics": ["Types of data", "Asking analytical questions", "Data quality"] },
+      { "title": "Preparing and exploring data", "topics": ["Cleaning data", "Descriptive statistics", "Finding patterns"] },
+      { "title": "Communicating insights", "topics": ["Choosing visualizations", "Building a dashboard", "Presenting findings"] }
+    ],
+    "tasks": [
+      { "title": "Clean a dataset", "description": "Identify missing or inconsistent values and prepare a reliable data table for analysis." },
+      { "title": "Summarize key metrics", "description": "Calculate descriptive statistics to uncover trends and patterns in the sample dataset." },
+      { "title": "Present a data story", "description": "Create a short insight brief with charts and recommendations for a fictional business scenario." }
+    ],
+    "referral": {
+      "idealFor": "People who want to turn raw data into clear findings and communicate evidence-based insights.",
+      "focusAreas": ["Data preparation", "Analysis", "Visualization"],
+      "invite": "Know someone who likes finding the story in numbers? Data Analytics Essentials covers data cleaning, exploration, visualization, and presenting insights."
+    }
+  },
+  "DM-130": {
+    "materials": ["Campaign planning worksheet", "Audience research template", "Content calendar"],
+    "videos": [
+      { "title": "Finding your audience online", "duration": "12 min" },
+      { "title": "Planning a digital campaign", "duration": "17 min" }
+    ],
+    "syllabus": [
+      { "title": "Digital marketing foundations", "topics": ["Marketing channels", "Audience and positioning", "Setting campaign goals"] },
+      { "title": "Content and campaigns", "topics": ["Content planning", "Social media strategy", "Search fundamentals"] },
+      { "title": "Measurement and improvement", "topics": ["Campaign metrics", "Reading analytics", "Project: campaign plan"] }
+    ],
+    "tasks": [
+      { "title": "Define campaign goals", "description": "Set a clear objective, target audience, and positioning strategy for a digital marketing campaign." },
+      { "title": "Build a content calendar", "description": "Plan content themes, posting dates, and campaign messaging across key channels." },
+      { "title": "Review campaign results", "description": "Interpret engagement metrics and suggested improvements based on campaign performance data." }
+    ],
+    "referral": {
+      "idealFor": "Creators, aspiring marketers, and small-business owners who want to plan smarter online campaigns.",
+      "focusAreas": ["Audience strategy", "Content planning", "Campaign analytics"],
+      "invite": "Interested in growing a brand online? Digital Marketing Strategy introduces audience planning, content campaigns, search fundamentals, and performance measurement."
+    }
+  }
+}
