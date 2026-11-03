@@ -7,6 +7,8 @@ import PaymentPage from "../../../pages/student/PaymentPage";
 import CoursesPage from "../../../pages/student/CoursesPage";
 import TasksPage from "../../../pages/student/TasksPage";
 import CertificatesPage from "../../../pages/student/CertificatesPage";
+import TeacherPage from "../../../pages/teachers/TeacherPage";
+import { authenticateTeacher } from "../../../pages/teachers/teacherAccounts";
 import { coursesData } from "../../../pages/student/coursesData";
 
 export default function Layout({ children }) {
@@ -15,6 +17,7 @@ export default function Layout({ children }) {
   const [activeTab, setActiveTab] = useState("courses");
   const [tabVersion, setTabVersion] = useState(0);
   const [loginRole, setLoginRole] = useState("student");
+  const [teacherCourseCodes, setTeacherCourseCodes] = useState([]);
 
   // Authentication Modal States
   const [authModal, setAuthModal] = useState(null); // 'login' | 'signup' | null
@@ -23,6 +26,7 @@ export default function Layout({ children }) {
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   // Available courses dataset
 
@@ -34,15 +38,53 @@ export default function Layout({ children }) {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
+    setLoginError("");
+
+    if (loginRole === "teacher") {
+      let teacher;
+      try {
+        teacher = authenticateTeacher(loginEmail, loginPassword);
+      } catch (error) {
+        setLoginError(
+          error instanceof Error
+            ? error.message
+            : "Unable to read teacher accounts. Please contact the admin.",
+        );
+        return;
+      }
+
+      if (!teacher) {
+        setLoginError(
+          "No matching teacher account. Ask the admin to create your account.",
+        );
+        return;
+      }
+
+      setUserName(teacher.name);
+      setTeacherCourseCodes(teacher.courseCodes ?? []);
+      setIsLoggedIn(true);
+      setAuthModal(null);
+      setLoginPassword("");
+      return;
+    }
+
     if (loginEmail.trim()) {
-      // Set username based on email prefix if not provided
-      const extractedName = loginEmail.split("@")[0];
+      const emailName = loginEmail
+        .split("@")[0]
+        .split(/[._-]+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+      const roleName = loginRole === "teacher" ? "Teacher" : "Student";
       setUserName(
-        extractedName.charAt(0).toUpperCase() + extractedName.slice(1),
+        ["student", "teacher"].includes(emailName.toLowerCase())
+          ? roleName
+          : emailName,
       );
     }
     setIsLoggedIn(true);
     setAuthModal(null);
+    setLoginPassword("");
   };
 
   const handleSignupSubmit = (e) => {
@@ -58,6 +100,8 @@ export default function Layout({ children }) {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setLoginRole("student");
+    setTeacherCourseCodes([]);
+    setLoginError("");
   };
 
   const renderTabContent = () => {
@@ -78,7 +122,14 @@ export default function Layout({ children }) {
   };
 
   if (isLoggedIn && loginRole === "teacher") {
-    return null;
+    return (
+      <TeacherPage
+        userName={userName}
+        userEmail={loginEmail.trim().toLowerCase()}
+        courseCodes={teacherCourseCodes}
+        onLogout={handleLogout}
+      />
+    );
   }
 
   return (
@@ -186,7 +237,10 @@ export default function Layout({ children }) {
                       key={role}
                       type="button"
                       aria-pressed={loginRole === role}
-                      onClick={() => setLoginRole(role)}
+                      onClick={() => {
+                        setLoginRole(role);
+                        setLoginError("");
+                      }}
                       className={`rounded-lg border px-3 py-2.5 text-sm font-semibold capitalize transition-colors ${
                         loginRole === role
                           ? "border-indigo-600 bg-indigo-50 text-indigo-800"
@@ -207,7 +261,7 @@ export default function Layout({ children }) {
                   required
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="student@example.com"
+                  placeholder={`${loginRole}@example.com`}
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
                 />
               </div>
@@ -224,6 +278,17 @@ export default function Layout({ children }) {
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-indigo-500"
                 />
               </div>
+              {loginRole === "teacher" && (
+                <p className="text-xs leading-5 text-slate-500">
+                  Teacher accounts are created by the admin. Use the email and
+                  temporary password they provided.
+                </p>
+              )}
+              {loginError && (
+                <p role="alert" className="text-sm text-rose-600">
+                  {loginError}
+                </p>
+              )}
               <button
                 type="submit"
                 className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm mt-2"

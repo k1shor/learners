@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { coursesData } from "../student/coursesData";
+import {
+  createTeacherAccount,
+  getTeacherAccounts,
+  removeTeacherAccount,
+} from "../teachers/teacherAccounts";
 
 const demoEmail = (name) =>
   `${name
@@ -682,6 +687,247 @@ function StatusBadge({ status }) {
   );
 }
 
+function TeacherAccountsPanel() {
+  const [accountState, setAccountState] = useState(() => {
+    try {
+      return { accounts: getTeacherAccounts(), error: "" };
+    } catch (loadError) {
+      return {
+        accounts: [],
+        error:
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load saved teacher accounts.",
+      };
+    }
+  });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [courseCodes, setCourseCodes] = useState([]);
+  const [formError, setFormError] = useState("");
+  const [created, setCreated] = useState(false);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setFormError("");
+    setCreated(false);
+
+    try {
+      if (courseCodes.length === 0) {
+        setFormError("Assign at least one class to this teacher.");
+        return;
+      }
+      setAccountState({
+        accounts: createTeacherAccount({ name, email, password, courseCodes }),
+        error: "",
+      });
+      setName("");
+      setEmail("");
+      setPassword("");
+      setCourseCodes([]);
+      setCreated(true);
+    } catch (createError) {
+      setFormError(
+        createError instanceof Error
+          ? createError.message
+          : "Unable to create the teacher account.",
+      );
+    }
+  };
+
+  const handleRemoveAccount = (email) => {
+    setFormError("");
+    setCreated(false);
+    try {
+      setAccountState({
+        accounts: removeTeacherAccount(email),
+        error: "",
+      });
+    } catch (removeError) {
+      setFormError(
+        removeError instanceof Error
+          ? removeError.message
+          : "Unable to remove the teacher account.",
+      );
+    }
+  };
+
+  return (
+    <section className="space-y-5 rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm sm:p-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-600">
+          Account access
+        </p>
+        <h2 className="mt-1 text-lg font-bold text-slate-900">
+          Create teacher account
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-slate-500">
+          Teachers can sign in only after you create their account here.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
+        <label className="text-sm font-medium text-slate-700">
+          Teacher name
+          <input
+            required
+            maxLength={100}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Full name"
+            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700">
+          Email address
+          <input
+            required
+            type="email"
+            maxLength={254}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="teacher@example.com"
+            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+          />
+        </label>
+        <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+          Temporary password
+          <input
+            required
+            type="password"
+            minLength={8}
+            maxLength={128}
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="At least 8 characters"
+            className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+          />
+        </label>
+        <fieldset className="space-y-2 sm:col-span-2">
+          <legend className="text-sm font-medium text-slate-700">
+            Assign classes
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {coursesData.map((course) => {
+              const courseCode = course["Course-Code"];
+              const isSelected = courseCodes.includes(courseCode);
+
+              return (
+                <label
+                  key={courseCode}
+                  className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                    isSelected
+                      ? "border-indigo-300 bg-indigo-50"
+                      : "border-slate-200 hover:border-indigo-200"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() =>
+                      setCourseCodes((currentCodes) =>
+                        isSelected
+                          ? currentCodes.filter((code) => code !== courseCode)
+                          : [...currentCodes, courseCode],
+                      )
+                    }
+                    className="mt-0.5 h-4 w-4 accent-indigo-600"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-slate-800">
+                      {course.Title}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-500">
+                      {courseCode}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500">
+            Teachers will see students from their assigned classes.
+          </p>
+        </fieldset>
+        {(accountState.error || formError) && (
+          <p role="alert" className="text-sm text-rose-600 sm:col-span-2">
+            {accountState.error || formError}
+          </p>
+        )}
+        {created && (
+          <p role="status" className="text-sm text-emerald-700 sm:col-span-2">
+            Teacher account created. They can now sign in with this email and
+            password.
+          </p>
+        )}
+        <button
+          type="submit"
+          className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 sm:col-span-2 sm:justify-self-start"
+        >
+          Create account
+        </button>
+      </form>
+
+      <div className="border-t border-slate-100 pt-4">
+        <h3 className="text-sm font-semibold text-slate-800">
+          Created accounts ({accountState.accounts.length})
+        </h3>
+        {accountState.accounts.length > 0 ? (
+          <ul className="mt-3 divide-y divide-slate-100">
+            {accountState.accounts.map((account) => (
+              <li
+                key={account.email}
+                className="flex flex-wrap items-center justify-between gap-3 py-3"
+              >
+                <div className="min-w-0">
+                  <span className="block text-sm font-medium text-slate-800">
+                    {account.name}
+                  </span>
+                  <a
+                    href={`mailto:${account.email}`}
+                    className="mt-1 block text-sm text-indigo-600 hover:text-indigo-800"
+                  >
+                    {account.email}
+                  </a>
+                  <span className="mt-1 block text-xs text-slate-500">
+                    {(account.courseCodes ?? [])
+                      .map(
+                        (code) =>
+                          coursesData.find(
+                            (course) => course["Course-Code"] === code,
+                          )?.Title ?? code,
+                      )
+                      .join(", ") || "No classes assigned"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveAccount(account.email)}
+                  aria-label={`Remove ${account.name}'s account`}
+                  className="shrink-0 rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
+                >
+                  Remove account
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-slate-500">
+            No teacher accounts have been created yet.
+          </p>
+        )}
+      </div>
+
+      <p className="rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+        Demo only: these accounts are saved in this browser, and passwords are
+        not secure. Use server-side authentication before using real accounts.
+      </p>
+    </section>
+  );
+}
+
 export default function AdminPage() {
   const [activeSection, setActiveSection] = useState("students");
   const [search, setSearch] = useState("");
@@ -763,11 +1009,14 @@ export default function AdminPage() {
         </header>
 
         {section.id === "students" || section.id === "teachers" ? (
-          <DirectoryDashboard
-            section={section}
-            search={search}
-            onSearchChange={setSearch}
-          />
+          <div className="space-y-8">
+            {section.id === "teachers" && <TeacherAccountsPanel />}
+            <DirectoryDashboard
+              section={section}
+              search={search}
+              onSearchChange={setSearch}
+            />
+          </div>
         ) : section.id === "courses" || section.id === "classes" ? (
           <CourseClassDashboard
             section={section}
