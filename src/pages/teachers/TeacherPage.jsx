@@ -6,8 +6,9 @@ import {
 } from "./teacherAssignments";
 
 const navigation = [
-  { id: "students", label: "Students" },
   { id: "classes", label: "Classes" },
+  { id: "courses", label: "Courses" },
+  { id: "students", label: "Students" },
   { id: "assignments", label: "Assignments" },
 ];
 
@@ -71,8 +72,9 @@ function SectionHeading({ title, description, search, onSearchChange }) {
 }
 
 function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
-  const [activeSection, setActiveSection] = useState("students");
+  const [activeSection, setActiveSection] = useState("classes");
   const [search, setSearch] = useState("");
+  const [selectedCourseCode, setSelectedCourseCode] = useState("");
   const [isAddingAssignment, setIsAddingAssignment] = useState(false);
   const [newAssignmentTitle, setNewAssignmentTitle] = useState("");
   const [newAssignmentCourse, setNewAssignmentCourse] = useState(
@@ -119,8 +121,16 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
       .toLowerCase()
       .includes(search.trim().toLowerCase()),
   );
-  const filteredCourses = teacherCourses.filter((course) =>
-    `${course.Title} ${course["Course-Code"]} ${course.Time} ${course.Duration}`
+  const filteredCourses = teacherCourses.filter(
+    (course) =>
+      (!selectedCourseCode ||
+        course["Course-Code"] === selectedCourseCode) &&
+      `${course.Title} ${course["Course-Code"]} ${course.Time} ${course.Duration}`
+        .toLowerCase()
+        .includes(search.trim().toLowerCase()),
+  );
+  const filteredCourseCatalog = coursesData.filter((course) =>
+    `${course.Title} ${course["Course-Code"]} ${course.Time} ${course.Duration} ${course.Description}`
       .toLowerCase()
       .includes(search.trim().toLowerCase()),
   );
@@ -184,6 +194,7 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
   const changeSection = (section) => {
     setActiveSection(section);
     setSearch("");
+    setSelectedCourseCode("");
   };
 
   const handleCreateAssignment = (event) => {
@@ -401,14 +412,139 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
             </section>
           )}
 
-          {activeSection === "classes" && (
+          {activeSection === "courses" && (
             <section>
               <SectionHeading
-                title="My classes"
-                description={`Showing ${filteredCourses.length} of ${teacherCourses.length} assigned classes`}
+                title="Course catalog"
+                description={`Showing ${filteredCourseCatalog.length} of ${coursesData.length} courses across all subjects`}
                 search={search}
                 onSearchChange={setSearch}
               />
+              {filteredCourseCatalog.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredCourseCatalog.map((course) => {
+                    const isAssigned = teacherCourses.some(
+                      (teacherCourse) =>
+                        teacherCourse["Course-Code"] ===
+                        course["Course-Code"],
+                    );
+
+                    return (
+                    <article
+                      key={course["Course-Code"]}
+                      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                            {course["Course-Code"]}
+                          </p>
+                          <h3 className="mt-1 font-semibold text-slate-900">
+                            {course.Title}
+                          </h3>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            isAssigned
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {isAssigned ? "Assigned" : "Other course"}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-slate-600">
+                        {course.Description}
+                      </p>
+                      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4">
+                        <div>
+                          <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Schedule
+                          </dt>
+                          <dd className="mt-1 text-sm font-medium text-slate-700">
+                            {course.Time}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Duration
+                          </dt>
+                          <dd className="mt-1 text-sm font-medium text-slate-700">
+                            {course.Duration}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                            Students
+                          </dt>
+                          <dd className="mt-1 text-sm font-medium text-slate-700">
+                            {course.participants.length} enrolled
+                          </dd>
+                        </div>
+                      </dl>
+                      {isAssigned && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveSection("classes");
+                            setSearch(course["Course-Code"]);
+                          }}
+                          className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                        >
+                          View class
+                        </button>
+                      )}
+                    </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState title="No matching courses" />
+              )}
+            </section>
+          )}
+
+          {activeSection === "classes" && (
+            <section>
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    My classes
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Showing {filteredCourses.length} of {teacherCourses.length}{" "}
+                    assigned classes
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <SearchField
+                    value={search}
+                    onChange={setSearch}
+                    label="Search my classes..."
+                  />
+                  <label className="sr-only" htmlFor="teacher-course-filter">
+                    Filter classes by course
+                  </label>
+                  <select
+                    id="teacher-course-filter"
+                    value={selectedCourseCode}
+                    onChange={(event) =>
+                      setSelectedCourseCode(event.target.value)
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 sm:w-auto"
+                  >
+                    <option value="">All courses</option>
+                    {teacherCourses.map((course) => (
+                      <option
+                        key={course["Course-Code"]}
+                        value={course["Course-Code"]}
+                      >
+                        {course["Course-Code"]} · {course.Title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               {filteredCourses.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredCourses.map((course) => (
@@ -678,6 +814,7 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
                           onClick={() => {
                             setActiveSection("classes");
                             setSearch(assignment.courseCode);
+                            setSelectedCourseCode("");
                           }}
                           className="text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
                         >
