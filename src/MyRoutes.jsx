@@ -10,9 +10,15 @@ import Payment from './pages/student_dashboard/Payment'
 import Login from './pages/student_dashboard/login/Login'
 import SignIn from './pages/student_dashboard/login/SignIn'
 import TeacherDashboard from './pages/teacher_dashboard/TeacherDashboard'
+import TeacherCourses from './pages/teacher_dashboard/TeacherCourses'
+import TeacherClasses from './pages/teacher_dashboard/TeacherClasses'
+import TeacherStudents from './pages/teacher_dashboard/TeacherStudents'
+import TeacherAssignments from './pages/teacher_dashboard/TeacherAssignments'
+import TeacherSchedule from './pages/teacher_dashboard/TeacherSchedule'
 import Layout from './component/layout/public/Layout'
 import SidebarLayout from './component/sidebar/SidebarLayout'
 import AdminSidebarLayout from './component/sidebar/AdminSidebarLayout'
+import TeacherSidebarLayout from './component/sidebar/TeacherSidebarLayout'
 import AdminDashboard from './pages/admin_dashboard/AdminDashboard'
 import Students from './pages/admin_dashboard/Students'
 import Teachers from './pages/admin_dashboard/Teachers'
@@ -29,7 +35,14 @@ const MyRoutes = () => {
                     <Route path='login' element={<Login />} />
                     <Route path='signin' element={<SignIn />} />
                 </Route>
-                <Route path='/teacher-dashboard' element={<TeacherDashboard />} />
+                <Route path='/teacher-dashboard' element={<TeacherSidebarLayout />}>
+                    <Route index element={<TeacherDashboard />} />
+                    <Route path='courses' element={<TeacherCourses />} />
+                    <Route path='classes' element={<TeacherClasses />} />
+                    <Route path='students' element={<TeacherStudents />} />
+                    <Route path='assignments' element={<TeacherAssignments />} />
+                    <Route path='schedule' element={<TeacherSchedule />} />
+                </Route>
                 <Route path='/student-dashboard' element={<SidebarLayout />}>
                     <Route index element={<StudentDashboard />} />
                     <Route path='courses' element={<Courses />} />
