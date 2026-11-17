@@ -1,9 +1,7 @@
-import React from 'react'
-
 const Homepage = () => {
   return (
     <div>
-      <h1 className='text-7xl font-bold text-center mt-8'>Welcome to the Homepage</h1>
+      <h1 className='mt-8 text-center text-4xl font-bold sm:text-6xl lg:text-7xl'>Welcome to the Homepage</h1>
     </div>
   )
 }

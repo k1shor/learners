@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Papa from 'papaparse'
+import { useAuth } from '../../../context/useAuth'
 import { getCourseStatus } from '../../../utils/courseStatus'
 
 const courseContent = {
@@ -85,6 +86,9 @@ const CourseDetails = () => {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [activeVideo, setActiveVideo] = useState(null)
+  const [isEnrolled, setIsEnrolled] = useState(false)
+  const { user } = useAuth()
+  const enrollmentStorageKey = `learnershub-enrollments-${user?.id ?? user?.email ?? 'student'}`
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -101,6 +105,18 @@ const CourseDetails = () => {
         const foundCourse = data.find((item) => item.course_code === courseCode)
         if (!foundCourse) throw new Error('We could not find that course.')
         setCourse(foundCourse)
+
+        try {
+          const storedEnrollments = JSON.parse(
+            window.localStorage.getItem(enrollmentStorageKey) || '[]',
+          )
+          const enrolledCourseCodes = Array.isArray(storedEnrollments)
+            ? storedEnrollments.filter((code) => typeof code === 'string')
+            : []
+          setIsEnrolled(enrolledCourseCodes.includes(foundCourse.course_code))
+        } catch {
+          setNotice('Your saved enrollments could not be read from this browser.')
+        }
       } catch (loadError) {
         setError(loadError.message || 'Something went wrong while loading this course.')
       } finally {
@@ -109,7 +125,25 @@ const CourseDetails = () => {
     }
 
     loadCourse()
-  }, [courseCode])
+  }, [courseCode, enrollmentStorageKey])
+
+  const handleEnrollment = () => {
+    try {
+      const savedEnrollments = JSON.parse(
+        window.localStorage.getItem(enrollmentStorageKey) || '[]',
+      )
+      const enrolledCourseCodes = Array.isArray(savedEnrollments)
+        ? savedEnrollments.filter((code) => typeof code === 'string')
+        : []
+      const updatedCourseCodes = [...new Set([...enrolledCourseCodes, course.course_code])]
+
+      window.localStorage.setItem(enrollmentStorageKey, JSON.stringify(updatedCourseCodes))
+      setIsEnrolled(true)
+      setNotice(`You're enrolled in ${course.title}. Your course is now in your learning list.`)
+    } catch {
+      setNotice('We could not save your enrollment in this browser. Please check your browser storage settings and try again.')
+    }
+  }
 
   if (isLoading) return <p className="text-slate-500">Loading course details…</p>
 
@@ -174,10 +208,11 @@ const CourseDetails = () => {
           </div>
           <button
             type="button"
-            onClick={() => setNotice('This course is under construction. Enrollment will be available soon.')}
-            className="w-full rounded-xl bg-slate-200 px-7 py-3.5 text-sm font-bold text-slate-700 transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900 lg:w-auto"
+            onClick={handleEnrollment}
+            disabled={isEnrolled}
+            className="w-full rounded-xl bg-white px-7 py-3.5 text-sm font-bold text-slate-900 transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-900 disabled:cursor-default disabled:bg-emerald-100 disabled:text-emerald-800 lg:w-auto"
           >
-            Join course
+            {isEnrolled ? 'Enrolled' : 'Join course'}
           </button>
         </div>
       </header>
@@ -189,8 +224,8 @@ const CourseDetails = () => {
         </div>
       )}
 
-      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="space-y-7">
+      <div className="grid min-w-0 grid-cols-1 gap-7 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="min-w-0 space-y-7">
           <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-9" aria-labelledby="syllabus-heading">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -204,7 +239,7 @@ const CourseDetails = () => {
                 <details key={topic} className="group py-1" open={index === 0}>
                   <summary className="flex cursor-pointer list-none items-center gap-4 rounded-lg py-3 hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-700">{String(index + 1).padStart(2, '0')}</span>
-                    <span className="flex-1 text-sm font-semibold text-slate-800">{topic}</span>
+                    <span className="min-w-0 flex-1 text-sm font-semibold text-slate-800">{topic}</span>
                     <span className="text-slate-400 transition group-open:rotate-180" aria-hidden="true">⌄</span>
                   </summary>
                   <p className="pb-4 pl-13 pr-8 text-sm leading-6 text-slate-500">A focused lesson with a short walkthrough, guided practice, and a quick knowledge check.</p>
@@ -286,7 +321,7 @@ const CourseDetails = () => {
           </section>
         </div>
 
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <section className={`rounded-2xl border p-6 ${statusStyles[courseStatus]}`} aria-label="Course status">
             <p className="text-xs font-bold uppercase tracking-widest opacity-75">Course status</p>
             <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/75 px-3 py-1.5 text-sm font-semibold shadow-sm">

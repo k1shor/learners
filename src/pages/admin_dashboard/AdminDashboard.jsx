@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import useAdminData from './useAdminData'
+import { useAuth } from '../../context/useAuth'
 
 const shortcuts = [
   { key: 'students', title: 'Students', detail: 'Learner accounts and enrollment', icon: '♙' },
@@ -10,6 +11,7 @@ const shortcuts = [
 
 const AdminDashboard = () => {
   const [data] = useAdminData()
+  const { user } = useAuth()
   const paidTotal = data.payments
     .filter((payment) => payment.status === 'Paid')
     .reduce((sum, payment) => sum + Number(payment.amount.replace(/[^\d.]/g, '')), 0)
@@ -26,8 +28,8 @@ const AdminDashboard = () => {
       <header className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">Administration</p>
-          <h1 id="admin-title" className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Dashboard overview</h1>
-          <p className="mt-2 text-slate-500">Welcome to the admin dashboard. Choose a section to get started.</p>
+          <h1 id="admin-title" className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Welcome, {user?.name?.split(' ')[0] || 'Admin'}</h1>
+          <p className="mt-2 text-slate-500">Here’s the latest overview of your learning platform.</p>
         </div>
         <span className="w-fit rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">Workspace active</span>
       </header>

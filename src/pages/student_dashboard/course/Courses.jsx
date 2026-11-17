@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Papa from 'papaparse'
+import { useAuth } from '../../../context/useAuth'
 import { getCourseStatus } from '../../../utils/courseStatus'
 
 const courseColors = [
@@ -20,8 +21,11 @@ const statusStyles = {
 
 const Courses = () => {
   const [courses, setCourses] = useState([])
+  const [enrolledCourses, setEnrolledCourses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const { user } = useAuth()
+  const enrollmentStorageKey = `learnershub-enrollments-${user?.id ?? user?.email ?? 'student'}`
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -47,6 +51,18 @@ const Courses = () => {
         )
 
         setCourses(validCourses)
+        try {
+          const savedEnrollments = JSON.parse(
+            window.localStorage.getItem(enrollmentStorageKey) || '[]',
+          )
+          setEnrolledCourses(
+            Array.isArray(savedEnrollments)
+              ? savedEnrollments.filter((code) => typeof code === 'string')
+              : [],
+          )
+        } catch {
+          setEnrolledCourses([])
+        }
       } catch (loadError) {
         setError(loadError.message || 'Something went wrong while loading courses.')
       } finally {
@@ -55,7 +71,7 @@ const Courses = () => {
     }
 
     loadCourses()
-  }, [])
+  }, [enrollmentStorageKey])
 
   if (isLoading) {
     return <p className="text-slate-500">Loading courses…</p>
@@ -111,6 +127,11 @@ const Courses = () => {
                 <span className={`mt-2 inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${statusStyles[getCourseStatus(course.start_date, course.duration)]}`}>
                   {getCourseStatus(course.start_date, course.duration)}
                 </span>
+                {enrolledCourses.includes(course.course_code) && (
+                  <span className="mt-2 inline-flex w-fit rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-100">
+                    Enrolled
+                  </span>
+                )}
                 <p className="mt-2 text-sm text-slate-500">
                   Instructor <span className="font-medium text-slate-700">{course.instructor}</span>
                 </p>

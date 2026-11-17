@@ -1,5 +1,12 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './component/layout/public/Layout'
+import SidebarLayout from './component/sidebar/SidebarLayout'
+import AdminSidebarLayout from './component/sidebar/AdminSidebarLayout'
+import TeacherSidebarLayout from './component/sidebar/TeacherSidebarLayout'
 import Homepage from './pages/student_dashboard/Homepage'
+import Login from './pages/student_dashboard/login/Login'
+import SignIn from './pages/student_dashboard/login/SignIn'
 import StudentDashboard from './pages/student_dashboard/StudentDashboard'
 import Courses from './pages/student_dashboard/course/Courses'
 import CourseDetails from './pages/student_dashboard/course/CourseDetails'
@@ -7,18 +14,12 @@ import Tasks from './pages/student_dashboard/Tasks'
 import Certification from './pages/student_dashboard/Certification'
 import Referral from './pages/student_dashboard/Referral'
 import Payment from './pages/student_dashboard/Payment'
-import Login from './pages/student_dashboard/login/Login'
-import SignIn from './pages/student_dashboard/login/SignIn'
 import TeacherDashboard from './pages/teacher_dashboard/TeacherDashboard'
 import TeacherCourses from './pages/teacher_dashboard/TeacherCourses'
 import TeacherClasses from './pages/teacher_dashboard/TeacherClasses'
 import TeacherStudents from './pages/teacher_dashboard/TeacherStudents'
 import TeacherAssignments from './pages/teacher_dashboard/TeacherAssignments'
 import TeacherSchedule from './pages/teacher_dashboard/TeacherSchedule'
-import Layout from './component/layout/public/Layout'
-import SidebarLayout from './component/sidebar/SidebarLayout'
-import AdminSidebarLayout from './component/sidebar/AdminSidebarLayout'
-import TeacherSidebarLayout from './component/sidebar/TeacherSidebarLayout'
 import AdminDashboard from './pages/admin_dashboard/AdminDashboard'
 import Students from './pages/admin_dashboard/Students'
 import Teachers from './pages/admin_dashboard/Teachers'
@@ -35,30 +36,39 @@ const MyRoutes = () => {
                     <Route path='login' element={<Login />} />
                     <Route path='signin' element={<SignIn />} />
                 </Route>
-                <Route path='/teacher-dashboard' element={<TeacherSidebarLayout />}>
-                    <Route index element={<TeacherDashboard />} />
-                    <Route path='courses' element={<TeacherCourses />} />
-                    <Route path='classes' element={<TeacherClasses />} />
-                    <Route path='students' element={<TeacherStudents />} />
-                    <Route path='assignments' element={<TeacherAssignments />} />
-                    <Route path='schedule' element={<TeacherSchedule />} />
+
+                <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+                    <Route path='/student-dashboard' element={<SidebarLayout />}>
+                        <Route index element={<StudentDashboard />} />
+                        <Route path='courses' element={<Courses />} />
+                        <Route path='courses/:courseCode' element={<CourseDetails />} />
+                        <Route path='tasks' element={<Tasks />} />
+                        <Route path='certification' element={<Certification />} />
+                        <Route path='referral' element={<Referral />} />
+                        <Route path='payment' element={<Payment />} />
+                    </Route>
                 </Route>
-                <Route path='/student-dashboard' element={<SidebarLayout />}>
-                    <Route index element={<StudentDashboard />} />
-                    <Route path='courses' element={<Courses />} />
-                    <Route path='courses/:courseCode' element={<CourseDetails />} />
-                    <Route path='tasks' element={<Tasks />} />
-                    <Route path='certification' element={<Certification />} />
-                    <Route path='referral' element={<Referral />} />
-                    <Route path='payment' element={<Payment />} />
+
+                <Route element={<ProtectedRoute allowedRoles={['teacher']} />}>
+                    <Route path='/teacher-dashboard' element={<TeacherSidebarLayout />}>
+                        <Route index element={<TeacherDashboard />} />
+                        <Route path='courses' element={<TeacherCourses />} />
+                        <Route path='classes' element={<TeacherClasses />} />
+                        <Route path='students' element={<TeacherStudents />} />
+                        <Route path='assignments' element={<TeacherAssignments />} />
+                        <Route path='schedule' element={<TeacherSchedule />} />
+                    </Route>
                 </Route>
-                <Route path='/admin-dashboard' element={<AdminSidebarLayout />}>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path='students' element={<Students />} />
-                    <Route path='teachers' element={<Teachers />} />
-                    <Route path='courses' element={<AdminCourses />} />
-                    <Route path='classes' element={<AdminClasses />} />
-                    <Route path='payments' element={<AdminPayments />} />
+
+                <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                    <Route path='/admin-dashboard' element={<AdminSidebarLayout />}>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path='students' element={<Students />} />
+                        <Route path='teachers' element={<Teachers />} />
+                        <Route path='courses' element={<AdminCourses />} />
+                        <Route path='classes' element={<AdminClasses />} />
+                        <Route path='payments' element={<AdminPayments />} />
+                    </Route>
                 </Route>
             </Routes>
         </BrowserRouter>

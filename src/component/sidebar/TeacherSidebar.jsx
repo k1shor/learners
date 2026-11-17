@@ -1,4 +1,6 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../context/useAuth'
+import ProfileAvatar from '../../components/ProfileAvatar'
 
 const items = [
   { label: 'Overview', to: '/teacher-dashboard', icon: '▦', end: true },
@@ -9,10 +11,13 @@ const items = [
   { label: 'Schedule', to: '/teacher-dashboard/schedule', icon: '◷' },
 ]
 
-const TeacherSidebar = () => (
+const TeacherSidebar = () => {
+  const { user } = useAuth()
+
+  return (
   <aside className="w-full shrink-0 border-b border-slate-200 bg-white p-4 md:min-h-[calc(100vh-4rem)] md:w-64 md:border-b-0 md:border-r md:p-5">
     <div className="mb-5 flex items-center gap-3 px-2 md:mb-8">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg font-bold text-white">T</span>
+      <ProfileAvatar name={user?.name || 'Teacher'} role="teacher" />
       <div>
         <p className="font-bold text-slate-900">Teacher portal</p>
         <p className="text-xs text-slate-500">Learning management</p>
@@ -33,10 +38,16 @@ const TeacherSidebar = () => (
     </nav>
     <div className="mt-8 hidden rounded-2xl bg-slate-50 p-4 md:block">
       <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Signed in as</p>
-      <p className="mt-2 text-sm font-semibold text-slate-800">Alex Morgan</p>
-      <p className="text-xs text-slate-500">alex@learnershub.com</p>
+      <div className="mt-3 flex items-center gap-3">
+        <ProfileAvatar name={user?.name || 'Teacher'} role="teacher" size="h-9 w-9" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-slate-800">{user?.name || 'Teacher'}</p>
+          <p className="truncate text-xs text-slate-500">{user?.email}</p>
+        </div>
+      </div>
     </div>
   </aside>
-)
+  )
+}
 
 export default TeacherSidebar
