@@ -8,12 +8,13 @@ export default function Sidebar({
     { id: "courses", label: " Courses" },
     { id: "tasks", label: " Tasks" },
     { id: "certificates", label: " Certificates" },
+    { id: "files", label: " Files" },
     { id: "referrals", label: " Referrals" },
     { id: "payment", label: " Payment" },
   ];
 
   return (
-    <aside className="w-64 bg-slate-100 border-r-2 border-indigo-200 flex flex-col p-4 shrink-0">
+    <aside className="app-sidebar w-64 bg-slate-100 border-r-2 border-indigo-200 flex flex-col p-4 shrink-0">
       {/* User Profile Section with Dummy Picture */}
       <div className="flex flex-col items-center pb-6 border-b border-indigo-200">
         <div className="w-20 h-20 bg-indigo-300 rounded-full overflow-hidden mb-3 border-2 border-indigo-600 flex items-center justify-center shadow-sm">

@@ -6,7 +6,7 @@ export default function Header({
   onMyCourseClick,
 }) {
   return (
-    <header className="flex justify-between items-center px-6 py-4 bg-indigo-50 border-b-2 border-indigo-200">
+    <header className="app-topbar flex justify-between items-center px-6 py-4 bg-indigo-50 border-b-2 border-indigo-200">
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold rounded-lg shadow-sm">
           E

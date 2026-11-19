@@ -7,7 +7,11 @@ const getCourseStatus = (course) => {
   return new Date() > endDate ? "Completed" : "Ongoing";
 };
 
-export default function CertificatesPage({ courses, userName }) {
+export default function CertificatesPage({
+  courses,
+  userName,
+  onPrepareDownload,
+}) {
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   if (selectedCourse) {
@@ -51,11 +55,8 @@ export default function CertificatesPage({ courses, userName }) {
           </div>
         </div>
         <button
-          onClick={() =>
-            alert(
-              `Downloading official certificate for ${selectedCourse.Title}`,
-            )
-          }
+          type="button"
+          onClick={() => onPrepareDownload(selectedCourse)}
           className="self-center rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
         >
           Download Certificate

@@ -17,7 +17,7 @@ const statusClass = {
   Pending: "bg-amber-100 text-amber-700 border-amber-200",
 };
 
-export default function CoursesPage({ courses }) {
+export default function CoursesPage({ courses, availabilityError = "" }) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [activeAssignment, setActiveAssignment] = useState(null);
 
@@ -234,13 +234,22 @@ export default function CoursesPage({ courses }) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-xl font-bold text-slate-800">Available Courses</h2>
+      {availabilityError && (
+        <p role="alert" className="text-sm text-rose-600">
+          {availabilityError}
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => {
           const status = getCourseStatus(course);
           return (
             <article
               key={course["Course-Code"]}
-              className="flex flex-col justify-between gap-4 rounded-lg border border-indigo-200 bg-slate-50 p-4 shadow-sm transition-shadow hover:shadow-md"
+              className={`flex flex-col justify-between gap-4 rounded-lg border p-4 shadow-sm transition-shadow ${
+                course.enabled === false
+                  ? "border-slate-200 bg-slate-100 opacity-75"
+                  : "border-indigo-200 bg-slate-50 hover:shadow-md"
+              }`}
             >
               <div className="flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
@@ -256,6 +265,11 @@ export default function CoursesPage({ courses }) {
                 >
                   {status}
                 </span>
+                {course.enabled === false && (
+                  <span className="w-fit rounded-full border border-slate-300 bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+                    Disabled
+                  </span>
+                )}
                 <div className="mt-1 flex flex-col gap-1 text-sm text-slate-600">
                   <p>Instructor: {course.Instructor}</p>
                   <p>Duration: {course.Duration}</p>
@@ -264,13 +278,15 @@ export default function CoursesPage({ courses }) {
                 </div>
               </div>
               <button
+                type="button"
+                disabled={course.enabled === false}
                 onClick={() => {
                   setSelectedCourse(course);
                   setActiveAssignment(null);
                 }}
-                className="mt-2 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700"
+                className="mt-2 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
               >
-                View Details
+                {course.enabled === false ? "Course disabled" : "View Details"}
               </button>
             </article>
           );

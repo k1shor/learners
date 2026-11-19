@@ -7,9 +7,11 @@ import PaymentPage from "../../../pages/student/PaymentPage";
 import CoursesPage from "../../../pages/student/CoursesPage";
 import TasksPage from "../../../pages/student/TasksPage";
 import CertificatesPage from "../../../pages/student/CertificatesPage";
+import FilesPage from "../../../pages/student/FilesPage";
 import TeacherPage from "../../../pages/teachers/TeacherPage";
 import { authenticateTeacher } from "../../../pages/teachers/teacherAccounts";
 import { coursesData } from "../../../pages/student/coursesData";
+import { getDisabledCourseCodes } from "../../../pages/student/courseAvailability";
 
 export default function Layout({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,6 +20,25 @@ export default function Layout({ children }) {
   const [tabVersion, setTabVersion] = useState(0);
   const [loginRole, setLoginRole] = useState("student");
   const [teacherCourseCodes, setTeacherCourseCodes] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [courseAccess] = useState(() => {
+    try {
+      return { disabledCourseCodes: getDisabledCourseCodes(), error: "" };
+    } catch (error) {
+      return {
+        disabledCourseCodes: coursesData.map((course) => course["Course-Code"]),
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load course availability.",
+      };
+    }
+  });
+  const studentCourses = coursesData.map((course) => ({
+    ...course,
+    enabled: !courseAccess.disabledCourseCodes.includes(course["Course-Code"]),
+  }));
+  const availableCourses = studentCourses.filter((course) => course.enabled);
 
   // Authentication Modal States
   const [authModal, setAuthModal] = useState(null); // 'login' | 'signup' | null
@@ -101,17 +122,56 @@ export default function Layout({ children }) {
     setIsLoggedIn(false);
     setLoginRole("student");
     setTeacherCourseCodes([]);
+    setFiles([]);
     setLoginError("");
+  };
+
+  const handlePrepareCertificateDownload = (course) => {
+    const certificateId = `certificate-${course["Course-Code"]}`;
+    const file = {
+      id: certificateId,
+      name: `${course["Course-Code"]}-certificate.txt`,
+      course: course.Title,
+      content: [
+        "E-learners Hub - Certificate of Completion",
+        `Presented to: ${userName}`,
+        `Course: ${course.Title}`,
+        `Course code: ${course["Course-Code"]}`,
+        `Instructor: ${course.Instructor}`,
+        "Issued date: October 2026",
+        `Credential ID: ELH-${course["Course-Code"]}-2026`,
+      ].join("\n"),
+    };
+
+    setFiles((currentFiles) => [
+      file,
+      ...currentFiles.filter((item) => item.id !== certificateId),
+    ]);
+    setActiveTab("files");
+    setTabVersion((version) => version + 1);
   };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "courses":
-        return <CoursesPage courses={coursesData} />;
+        return (
+          <CoursesPage
+            courses={studentCourses}
+            availabilityError={courseAccess.error}
+          />
+        );
       case "tasks":
-        return <TasksPage courses={coursesData} />;
+        return <TasksPage courses={availableCourses} />;
       case "certificates":
-        return <CertificatesPage courses={coursesData} userName={userName} />;
+        return (
+          <CertificatesPage
+            courses={availableCourses}
+            userName={userName}
+            onPrepareDownload={handlePrepareCertificateDownload}
+          />
+        );
+      case "files":
+        return <FilesPage files={files} />;
       case "referrals":
         return <ReferralPage userName={userName} />;
       case "payment":
@@ -133,7 +193,7 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50 relative">
+    <div className="app-frame w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50 relative">
       <Header
         isLoggedIn={isLoggedIn}
         onLoginClick={handleOpenLogin}
@@ -174,7 +234,7 @@ export default function Layout({ children }) {
               </div>
 
               {/* Dynamic Content Area */}
-              <div className="bg-white p-6 rounded-xl border border-indigo-100 shadow-sm flex flex-col flex-1">
+              <div className="app-content-panel bg-white p-6 rounded-xl border border-indigo-100 shadow-sm flex flex-col flex-1">
                 <div key={tabVersion} className="flex flex-1 flex-col">
                   {renderTabContent()}
                 </div>

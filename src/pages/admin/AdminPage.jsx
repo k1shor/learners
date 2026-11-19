@@ -5,6 +5,10 @@ import {
   getTeacherAccounts,
   removeTeacherAccount,
 } from "../teachers/teacherAccounts";
+import {
+  getDisabledCourseCodes,
+  saveDisabledCourseCodes,
+} from "../student/courseAvailability";
 
 const demoEmail = (name) =>
   `${name
@@ -931,7 +935,30 @@ function TeacherAccountsPanel() {
 export default function AdminPage() {
   const [activeSection, setActiveSection] = useState("students");
   const [search, setSearch] = useState("");
-  const [courseRows, setCourseRows] = useState(initialCourseRows);
+  const [courseState, setCourseState] = useState(() => {
+    try {
+      const disabledCourseCodes = new Set(getDisabledCourseCodes());
+      return {
+        courses: initialCourseRows.map((course) => ({
+          ...course,
+          enabled: !disabledCourseCodes.has(course.courseCode),
+        })),
+        error: "",
+      };
+    } catch (error) {
+      return {
+        courses: initialCourseRows.map((course) => ({
+          ...course,
+          enabled: false,
+        })),
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load saved course availability.",
+      };
+    }
+  });
+  const courseRows = courseState.courses;
   const paymentRows = initialPayments;
   const section =
     sections.find((item) => item.id === activeSection) ?? sections[0];
@@ -958,6 +985,31 @@ export default function AdminPage() {
   const pendingTotal = paymentRows
     .filter((payment) => payment.status === "Pending")
     .reduce((total, payment) => total + payment.amount, 0);
+
+  const handleToggleCourse = (courseCode) => {
+    const updatedCourses = courseRows.map((course) =>
+      course.courseCode === courseCode
+        ? { ...course, enabled: !course.enabled }
+        : course,
+    );
+
+    try {
+      saveDisabledCourseCodes(
+        updatedCourses
+          .filter((course) => !course.enabled)
+          .map((course) => course.courseCode),
+      );
+      setCourseState({ courses: updatedCourses, error: "" });
+    } catch (error) {
+      setCourseState((currentState) => ({
+        ...currentState,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to save course availability.",
+      }));
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 md:flex-row">
@@ -1008,6 +1060,12 @@ export default function AdminPage() {
           <p className="mt-2 text-sm text-slate-600">{section.description}</p>
         </header>
 
+        {courseState.error && (
+          <p role="alert" className="mb-6 text-sm text-rose-600">
+            {courseState.error}
+          </p>
+        )}
+
         {section.id === "students" || section.id === "teachers" ? (
           <div className="space-y-8">
             {section.id === "teachers" && <TeacherAccountsPanel />}
@@ -1035,15 +1093,7 @@ export default function AdminPage() {
             classes={classRows}
             search={search}
             onSearchChange={setSearch}
-            onToggleCourse={(courseCode) =>
-              setCourseRows((currentRows) =>
-                currentRows.map((course) =>
-                  course.courseCode === courseCode
-                    ? { ...course, enabled: !course.enabled }
-                    : course,
-                ),
-              )
-            }
+            onToggleCourse={handleToggleCourse}
           />
         ) : (
           <section className="overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-sm">
@@ -1120,15 +1170,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   aria-pressed={row.enabled}
-                                  onClick={() =>
-                                    setCourseRows((currentRows) =>
-                                      currentRows.map((course) =>
-                                        course.courseCode === row.courseCode
-                                          ? { ...course, enabled: !course.enabled }
-                                          : course,
-                                      ),
-                                    )
-                                  }
+                                  onClick={() => handleToggleCourse(row.courseCode)}
                                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                                     row.enabled
                                       ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
