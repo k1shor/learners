@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../../../context/useAuth'
+import BrandLogo from '../../../components/BrandLogo'
 
 const Header = ({ studentMode = false }) => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -55,16 +56,7 @@ const Header = ({ studentMode = false }) => {
   return (
     <header className="bg-white fixed w-full z-20 top-0 inset-s-0 border-b border-gray-200 shadow-sm">
       <nav className="max-w-7xl mx-auto flex items-center justify-between p-4 gap-3 sm:gap-4">
-        <Link to={studentMode ? '/student-dashboard' : '/'} className="flex min-w-0 items-center space-x-3 rtl:space-x-reverse">
-          <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            className="h-7 w-7 shrink-0"
-            alt="Flowbite Logo"
-          />
-          <span className="self-center text-lg sm:text-xl font-semibold whitespace-nowrap text-slate-800">
-            E-lernersHUB
-          </span>
-        </Link>
+        <BrandLogo to={studentMode ? '/student-dashboard' : '/'} compact />
 
         <div className="hidden md:block">
           {authButtons}

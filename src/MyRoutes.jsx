@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import Layout from './component/layout/public/Layout'
 import SidebarLayout from './component/sidebar/SidebarLayout'
@@ -26,10 +27,33 @@ import Teachers from './pages/admin_dashboard/Teachers'
 import AdminCourses from './pages/admin_dashboard/Courses'
 import AdminClasses from './pages/admin_dashboard/Classes'
 import AdminPayments from './pages/admin_dashboard/Payments'
+import NotFound from './components/NotFound'
+
+const RouteTitle = () => {
+    const { pathname } = useLocation()
+
+    useEffect(() => {
+        if (pathname === '/') {
+            document.title = 'LearnersHub'
+            return
+        }
+
+        const title = pathname
+            .split('/')
+            .filter(Boolean)
+            .pop()
+            ?.replaceAll('-', ' ')
+            .replace(/\b\w/g, (character) => character.toUpperCase())
+        document.title = title ? `${title} | LearnersHub` : 'LearnersHub'
+    }, [pathname])
+
+    return null
+}
 
 const MyRoutes = () => {
     return (
         <BrowserRouter>
+            <RouteTitle />
             <Routes>
                 <Route path='/' element={<Layout />}>
                     <Route index element={<Homepage />} />
@@ -70,6 +94,7 @@ const MyRoutes = () => {
                         <Route path='payments' element={<AdminPayments />} />
                     </Route>
                 </Route>
+                <Route path='*' element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     )

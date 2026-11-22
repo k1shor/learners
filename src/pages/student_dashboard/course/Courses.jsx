@@ -24,6 +24,8 @@ const Courses = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All courses')
   const { user } = useAuth()
   const enrollmentStorageKey = `learnershub-enrollments-${user?.id ?? user?.email ?? 'student'}`
 
@@ -74,12 +76,36 @@ const Courses = () => {
   }, [enrollmentStorageKey])
 
   if (isLoading) {
-    return <p className="text-slate-500">Loading courses…</p>
+    return (
+      <section aria-label="Loading courses" aria-busy="true">
+        <div className="mb-8 h-20 max-w-xl animate-pulse rounded-2xl bg-slate-200" />
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <div key={item} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <div className="h-32 animate-pulse bg-slate-200" />
+              <div className="space-y-3 p-5">
+                <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
+                <div className="h-5 w-1/3 animate-pulse rounded bg-slate-100" />
+                <div className="h-11 animate-pulse rounded-xl bg-slate-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
   }
 
   if (error) {
     return <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-700">{error}</p>
   }
+
+  const visibleCourses = courses.filter((course) => {
+    const matchesQuery = `${course.title} ${course.instructor} ${course.course_code}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase())
+    const status = getCourseStatus(course.start_date, course.duration)
+    return matchesQuery && (statusFilter === 'All courses' || status === statusFilter)
+  })
 
   return (
     <section aria-labelledby="courses-heading">
@@ -105,8 +131,31 @@ const Courses = () => {
           No courses were found in the course data file.
         </p>
       ) : (
+        <>
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row">
+          <label className="relative flex-1">
+            <span className="sr-only">Search courses</span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400" aria-hidden="true">⌕</span>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, instructor, or code..." className="h-11 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50" />
+          </label>
+          <label>
+            <span className="sr-only">Filter by course status</span>
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 sm:w-44">
+              <option>All courses</option>
+              <option>Upcoming</option>
+              <option>Ongoing</option>
+              <option>Completed</option>
+            </select>
+          </label>
+        </div>
+        {visibleCourses.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+            <p className="font-semibold text-slate-800">No matching courses</p>
+            <button type="button" onClick={() => { setQuery(''); setStatusFilter('All courses') }} className="mt-3 text-sm font-semibold text-indigo-700 hover:text-indigo-900">Clear search and filters</button>
+          </div>
+        ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {courses.map((course, index) => (
+          {visibleCourses.map((course, index) => (
             <article
               key={course.course_code}
               className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
@@ -153,8 +202,9 @@ const Courses = () => {
             </article>
           ))}
         </div>
+        )}
+        </>
       )}
-
     </section>
   )
 }

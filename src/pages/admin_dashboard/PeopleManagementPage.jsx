@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import useAdminData from './useAdminData'
+import { useToast } from '../../components/ToastContext'
 
 const EMPTY_PEOPLE = []
 
@@ -13,6 +14,7 @@ const PeopleManagementPage = ({ type }) => {
   const [statusFilter, setStatusFilter] = useState('All accounts')
   const [isAddFormOpen, setIsAddFormOpen] = useState(false)
   const [selectedPerson, setSelectedPerson] = useState(null)
+  const { showToast } = useToast()
 
   const filteredPeople = useMemo(() => people.filter((person) => {
     const matchesQuery = `${person.name} ${person.email || ''} ${person.id} ${person.subject || person.program || ''}`
@@ -41,6 +43,7 @@ const PeopleManagementPage = ({ type }) => {
     updateData((currentData) => ({ ...currentData, [type]: [person, ...(currentData[type] || [])] }))
     setIsAddFormOpen(false)
     event.currentTarget.reset()
+    showToast(`${person.name} was added successfully.`)
   }
 
   const toggleStatus = (person) => {
@@ -50,6 +53,7 @@ const PeopleManagementPage = ({ type }) => {
       [type]: currentData[type].map((item) => item.id === person.id ? { ...item, status: nextStatus } : item),
     }))
     if (selectedPerson?.id === person.id) setSelectedPerson({ ...person, status: nextStatus })
+    showToast(`${person.name}'s account is now ${nextStatus.toLowerCase()}.`)
   }
 
   const detailItems = selectedPerson && [
@@ -93,7 +97,31 @@ const PeopleManagementPage = ({ type }) => {
             <label><span className="sr-only">Filter by account status</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 sm:w-40"><option>All accounts</option><option>Active</option><option>Disabled</option></select></label>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="grid gap-3 p-4 md:hidden">
+          {filteredPeople.map((person) => (
+            <article key={person.id} className="rounded-xl border border-slate-200 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <button type="button" onClick={() => setSelectedPerson(person)} className="truncate text-left font-bold text-slate-900 hover:text-indigo-700">
+                    {person.name}
+                  </button>
+                  <p className="mt-1 text-xs text-slate-500">{person.id}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${person.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                  {person.status}
+                </span>
+              </div>
+              <p className="mt-3 text-sm text-slate-600">{person.subject || person.program || 'Not assigned'}</p>
+              <p className="mt-1 truncate text-xs text-slate-500">{person.email || 'No email'}</p>
+              <div className="mt-4 flex gap-2 border-t border-slate-100 pt-3">
+                <button type="button" onClick={() => setSelectedPerson(person)} className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700">Details</button>
+                <button type="button" onClick={() => toggleStatus(person)} className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">{person.status === 'Active' ? 'Disable' : 'Activate'}</button>
+              </div>
+            </article>
+          ))}
+          {filteredPeople.length === 0 && <p className="py-10 text-center text-sm text-slate-500">No {isTeacher ? 'instructors' : 'students'} match your search.</p>}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-180 text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th scope="col" className="px-5 py-3.5 font-semibold">Name</th><th scope="col" className="px-5 py-3.5 font-semibold">{isTeacher ? 'Subject / expertise' : 'Program'}</th><th scope="col" className="px-5 py-3.5 font-semibold">Contact</th><th scope="col" className="px-5 py-3.5 font-semibold">Status</th><th scope="col" className="px-5 py-3.5 text-right font-semibold">Actions</th></tr></thead>
             <tbody className="divide-y divide-slate-100">
