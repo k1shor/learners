@@ -1,8 +1,21 @@
+import { useAuth } from '../../context/useAuth'
+
 const learnerName = 'Your Name'
 const courseTitle = 'Introduction to Web Development'
 const issuedDate = new Date().toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })
 
+const escapeXml = (value) => value.replace(/[<>&"']/g, (character) => ({
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&apos;',
+})[character])
+
 const Certification = () => {
+  const { user } = useAuth()
+  const displayName = user?.name?.trim() || learnerName
+
   const downloadPreview = () => {
     // TODO: Replace this SVG preview download with the official certificate generator/API.
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="850" viewBox="0 0 1200 850">
@@ -10,7 +23,7 @@ const Certification = () => {
       <text x="600" y="150" text-anchor="middle" font-family="Georgia,serif" font-size="26" letter-spacing="7" fill="#4f46e5">LEARNERS HUB</text>
       <text x="600" y="255" text-anchor="middle" font-family="Georgia,serif" font-size="54" fill="#172554">Certificate of Achievement</text>
       <text x="600" y="330" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" fill="#64748b">This preview is presented to</text>
-      <text x="600" y="425" text-anchor="middle" font-family="Georgia,serif" font-size="56" fill="#4338ca">${learnerName}</text>
+      <text x="600" y="425" text-anchor="middle" font-family="Georgia,serif" font-size="56" fill="#4338ca">${escapeXml(displayName)}</text>
       <path d="M280 450h640" stroke="#c7d2fe" stroke-width="2"/>
       <text x="600" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#64748b">for completing the learning preview for</text>
       <text x="600" y="590" text-anchor="middle" font-family="Georgia,serif" font-size="34" fill="#172554">${courseTitle}</text>
@@ -87,7 +100,7 @@ const Certification = () => {
               <p className="mt-4 text-xs font-bold uppercase tracking-[0.3em] text-indigo-600">Learners Hub</p>
               <h3 className="mt-5 font-serif text-2xl font-semibold text-slate-900 sm:text-4xl">Certificate of Achievement</h3>
               <p className="mt-5 text-sm text-slate-500 sm:text-base">This preview is presented to</p>
-              <p className="mx-auto mt-3 max-w-xl border-b border-indigo-200 pb-3 font-serif text-3xl italic text-indigo-800 sm:text-5xl">{learnerName}</p>
+              <p className="mx-auto mt-3 max-w-xl border-b border-indigo-200 pb-3 font-serif text-3xl italic text-indigo-800 sm:text-5xl">{displayName}</p>
               <p className="mt-5 text-sm text-slate-500 sm:text-base">for completing the learning preview for</p>
               <p className="mt-2 font-serif text-xl font-semibold text-slate-800 sm:text-2xl">{courseTitle}</p>
               <p className="mt-6 text-sm text-slate-500">Preview date: {issuedDate}</p>

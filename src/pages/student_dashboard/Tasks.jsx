@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../../context/useAuth'
 
-const STORAGE_KEY = 'learners-task-list'
+const getStorageKey = (userId) => `learners-task-list-${userId}`
 
 const dateFromToday = (offset) => {
   const date = new Date()
@@ -72,9 +73,9 @@ const statusLabels = {
   completed: 'Completed',
 }
 
-const getStoredTasks = () => {
+const getStoredTasks = (storageKey) => {
   try {
-    const storedTasks = window.localStorage.getItem(STORAGE_KEY)
+    const storedTasks = window.localStorage.getItem(storageKey)
     if (storedTasks) {
       const parsedTasks = JSON.parse(storedTasks)
       if (Array.isArray(parsedTasks)) return parsedTasks
@@ -99,7 +100,9 @@ const formatDueDate = (dateValue) => {
 }
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState(getStoredTasks)
+  const { user } = useAuth()
+  const storageKey = getStorageKey(user?.id ?? user?.email ?? 'student')
+  const [tasks, setTasks] = useState(() => getStoredTasks(storageKey))
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -113,11 +116,11 @@ const Tasks = () => {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+      window.localStorage.setItem(storageKey, JSON.stringify(tasks))
     } catch {
       // The task list remains usable if browser storage is unavailable.
     }
-  }, [tasks])
+  }, [storageKey, tasks])
 
   const taskCounts = useMemo(() => {
     const completed = tasks.filter((task) => task.status === 'completed').length
