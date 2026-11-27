@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { coursesData } from "../student/coursesData";
 import {
+  deleteTeacherAssignment,
+  getDeletedTeacherAssignmentIds,
   getTeacherAssignments,
   saveTeacherAssignment,
 } from "./teacherAssignments";
+import { getAssignmentSubmissions } from "../student/assignmentSubmissions";
 
 const navigation = [
   { id: "classes", label: "Classes" },
@@ -83,6 +86,21 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
   const [newAssignmentDueDate, setNewAssignmentDueDate] = useState("");
   const [newAssignmentDetails, setNewAssignmentDetails] = useState("");
   const [assignmentSaveError, setAssignmentSaveError] = useState("");
+  const [submissionView, setSubmissionView] = useState(null);
+  const [assignmentToDelete, setAssignmentToDelete] = useState(null);
+  const [deletedAssignmentState, setDeletedAssignmentState] = useState(() => {
+    try {
+      return { ids: getDeletedTeacherAssignmentIds(userEmail), error: "" };
+    } catch (error) {
+      return {
+        ids: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load deleted assignments.",
+      };
+    }
+  });
   const [customAssignmentState, setCustomAssignmentState] = useState(() => {
     try {
       return { assignments: getTeacherAssignments(userEmail), error: "" };
@@ -142,13 +160,19 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
         courseCode: course["Course-Code"],
         courseName: course.Title,
         studentCount: course.participants.length,
+        isCustom: false,
       })),
+    ).filter(
+      (assignment) => !deletedAssignmentState.ids.includes(assignment.id),
     ),
     ...customAssignmentState.assignments
       .filter((assignment) =>
         teacherCourses.some(
           (course) => course["Course-Code"] === assignment.courseCode,
         ),
+      )
+      .filter(
+        (assignment) => !deletedAssignmentState.ids.includes(assignment.id),
       )
       .map((assignment) => ({
         ...assignment,
@@ -160,6 +184,7 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
           teacherCourses.find(
             (course) => course["Course-Code"] === assignment.courseCode,
           )?.participants.length ?? 0,
+        isCustom: true,
       })),
   ];
   const filteredAssignments = teacherAssignments.filter((assignment) =>
@@ -231,6 +256,50 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
           ? error.message
           : "Unable to save this assignment.",
       );
+    }
+  };
+
+  const openAssignmentSubmissions = (assignment) => {
+    try {
+      setSubmissionView({
+        assignment,
+        submissions: getAssignmentSubmissions().filter(
+          (submission) =>
+            submission.courseCode === assignment.courseCode &&
+            submission.assignmentTitle === assignment.title,
+        ),
+        error: "",
+      });
+    } catch (error) {
+      setSubmissionView({
+        assignment,
+        submissions: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load assignment submissions.",
+      });
+    }
+  };
+
+  const handleDeleteAssignment = () => {
+    setAssignmentSaveError("");
+    try {
+      const { assignments, deletedIds } = deleteTeacherAssignment(
+        userEmail,
+        assignmentToDelete,
+      );
+      setCustomAssignmentState({ assignments, error: "" });
+      setDeletedAssignmentState({ ids: deletedIds, error: "" });
+      setAssignmentToDelete(null);
+    } catch (error) {
+      setDeletedAssignmentState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to delete this assignment.",
+      }));
     }
   };
 
@@ -653,6 +722,14 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
 
           {activeSection === "assignments" && (
             <section>
+              {deletedAssignmentState.error && (
+                <p
+                  role="alert"
+                  className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"
+                >
+                  {deletedAssignmentState.error}
+                </p>
+              )}
               <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
@@ -804,22 +881,40 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
                       <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">
                         {assignment.details || "No additional instructions."}
                       </p>
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                      <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
                         <span className="text-xs text-slate-500">
                           For {assignment.studentCount}{" "}
                           {assignment.studentCount === 1 ? "student" : "students"}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveSection("classes");
-                            setSearch(assignment.courseCode);
-                            setSelectedCourseCode("");
-                          }}
-                          className="text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
-                        >
-                          View class
-                        </button>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openAssignmentSubmissions(assignment)
+                            }
+                            className="text-xs font-semibold text-indigo-600 transition hover:text-indigo-800"
+                          >
+                            View Assignment
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveSection("classes");
+                              setSearch(assignment.courseCode);
+                              setSelectedCourseCode("");
+                            }}
+                            className="text-xs font-semibold text-slate-500 transition hover:text-slate-700"
+                          >
+                            View class
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAssignmentToDelete(assignment)}
+                            className="text-xs font-semibold text-rose-600 transition hover:text-rose-800"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}
@@ -843,6 +938,121 @@ function TeacherPage({ userName, userEmail, courseCodes = [], onLogout }) {
 
         </div>
       </main>
+      {submissionView && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setSubmissionView(null);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assignment-submissions-title"
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h2
+                  id="assignment-submissions-title"
+                  className="text-lg font-bold text-slate-900"
+                >
+                  {submissionView.assignment.title}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {submissionView.assignment.courseCode} ·{" "}
+                  {submissionView.assignment.courseName}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close assignment submissions"
+                onClick={() => setSubmissionView(null)}
+                className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-slate-800">
+              Student submissions ({submissionView.submissions.length})
+            </h3>
+            {submissionView.error ? (
+              <p role="alert" className="mt-3 text-sm text-rose-600">
+                {submissionView.error}
+              </p>
+            ) : submissionView.submissions.length ? (
+              <ul className="mt-3 max-h-80 divide-y divide-slate-100 overflow-y-auto">
+                {submissionView.submissions.map((submission) => (
+                  <li
+                    key={`${submission.studentId}-${submission.submittedAt}`}
+                    className="flex items-center justify-between gap-3 py-3"
+                  >
+                    <span className="text-sm font-medium text-slate-800">
+                      {submission.studentName}
+                    </span>
+                    <time
+                      dateTime={submission.submittedAt}
+                      className="text-xs text-slate-500"
+                    >
+                      {new Date(submission.submittedAt).toLocaleString()}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+                No student submissions yet.
+              </p>
+            )}
+          </section>
+        </div>
+      )}
+      {assignmentToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setAssignmentToDelete(null);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-assignment-title"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h2
+              id="delete-assignment-title"
+              className="text-lg font-bold text-slate-900"
+            >
+              Delete assignment?
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Are you sure you want to delete “{assignmentToDelete.title}” from
+              your assignments? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setAssignmentToDelete(null)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAssignment}
+                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+              >
+                Delete assignment
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

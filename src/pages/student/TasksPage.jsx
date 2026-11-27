@@ -1,17 +1,51 @@
 import { useState } from "react";
+import {
+  getAssignmentSubmissions,
+  saveAssignmentSubmission,
+} from "./assignmentSubmissions";
 
-export default function TasksPage({ courses }) {
+export default function TasksPage({
+  courses,
+  userName = "Student",
+  userEmail = "",
+}) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [activeAssignment, setActiveAssignment] = useState(null);
+  const [submissionState, setSubmissionState] = useState(() => {
+    try {
+      return { submissions: getAssignmentSubmissions(), error: "" };
+    } catch (error) {
+      return {
+        submissions: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load assignment submissions.",
+      };
+    }
+  });
+  const isAssignmentCompleted = (course, assignment) =>
+    assignment.isCompleted ||
+    submissionState.submissions.some(
+      (submission) =>
+        submission.studentId === (userEmail || userName).trim().toLowerCase() &&
+        submission.courseCode === course["Course-Code"] &&
+        submission.assignmentTitle === assignment.title,
+    );
 
   if (selectedCourse) {
     const allCompleted = selectedCourse.assignments.every(
-      (assignment) => assignment.isCompleted,
+      (assignment) => isAssignmentCompleted(selectedCourse, assignment),
     );
 
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-bold text-slate-800">Tasks & Assignments</h2>
+        {submissionState.error && (
+          <p role="alert" className="text-sm text-rose-600">
+            {submissionState.error}
+          </p>
+        )}
         <section className="flex flex-col gap-6 rounded-xl border border-indigo-100 bg-slate-50 p-6">
           <button
             onClick={() => {
@@ -69,9 +103,11 @@ export default function TasksPage({ courses }) {
                       </span>
                     </span>
                     <span
-                      className={`rounded border px-2.5 py-1 text-xs font-semibold ${assignment.isCompleted ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
+                      className={`rounded border px-2.5 py-1 text-xs font-semibold ${isAssignmentCompleted(selectedCourse, assignment) ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
                     >
-                      {assignment.isCompleted ? "Completed" : "Pending"}
+                      {isAssignmentCompleted(selectedCourse, assignment)
+                        ? "Completed"
+                        : "Pending"}
                     </span>
                   </button>
                   {activeAssignment === index && (
@@ -81,18 +117,39 @@ export default function TasksPage({ courses }) {
                       </p>
                       <button
                         onClick={() => {
-                          if (assignment.isCompleted) {
+                          if (
+                            isAssignmentCompleted(selectedCourse, assignment)
+                          ) {
                             alert(
                               `Viewing submitted assignment details for: ${assignment.title}`,
                             );
                           } else {
-                            assignment.isCompleted = true;
-                            alert(`Submitted assignment: ${assignment.title}`);
+                            try {
+                              setSubmissionState({
+                                submissions: saveAssignmentSubmission({
+                                  studentId: userEmail || userName,
+                                  studentName: userName,
+                                  courseCode: selectedCourse["Course-Code"],
+                                  assignmentTitle: assignment.title,
+                                }),
+                                error: "",
+                              });
+                            } catch (error) {
+                              setSubmissionState((current) => ({
+                                ...current,
+                                error:
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Unable to submit this assignment.",
+                              }));
+                            }
                           }
                         }}
                         className={`self-start rounded px-4 py-1.5 font-medium text-white transition-colors ${assignment.isCompleted ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
                       >
-                        {assignment.isCompleted ? "View" : "Submit Assignment"}
+                        {isAssignmentCompleted(selectedCourse, assignment)
+                          ? "View"
+                          : "Submit Assignment"}
                       </button>
                     </div>
                   )}
@@ -108,10 +165,15 @@ export default function TasksPage({ courses }) {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-xl font-bold text-slate-800">Tasks & Assignments</h2>
+      {submissionState.error && (
+        <p role="alert" className="text-sm text-rose-600">
+          {submissionState.error}
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => {
           const completedCount = course.assignments.filter(
-            (assignment) => assignment.isCompleted,
+            (assignment) => isAssignmentCompleted(course, assignment),
           ).length;
           const allCompleted = completedCount === course.assignments.length;
 

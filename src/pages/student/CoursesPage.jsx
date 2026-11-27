@@ -1,4 +1,8 @@
 import { useState } from "react";
+import {
+  getAssignmentSubmissions,
+  saveAssignmentSubmission,
+} from "./assignmentSubmissions";
 
 const getCourseStatus = (course) => {
   const startDate = new Date(course["Start-date"]);
@@ -17,9 +21,40 @@ const statusClass = {
   Pending: "bg-amber-100 text-amber-700 border-amber-200",
 };
 
-export default function CoursesPage({ courses, availabilityError = "" }) {
+export default function CoursesPage({
+  courses,
+  viewMode = "catalog",
+  joinedCourseCodes = [],
+  onJoinCourse,
+  onBrowseCourses,
+  enrollmentError = "",
+  userName = "Student",
+  userEmail = "",
+  availabilityError = "",
+}) {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [activeAssignment, setActiveAssignment] = useState(null);
+  const [submissionState, setSubmissionState] = useState(() => {
+    try {
+      return { submissions: getAssignmentSubmissions(), error: "" };
+    } catch (error) {
+      return {
+        submissions: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to load assignment submissions.",
+      };
+    }
+  });
+  const isAssignmentCompleted = (course, assignment) =>
+    assignment.isCompleted ||
+    submissionState.submissions.some(
+      (submission) =>
+        submission.studentId === (userEmail || userName).trim().toLowerCase() &&
+        submission.courseCode === course["Course-Code"] &&
+        submission.assignmentTitle === assignment.title,
+    );
 
   if (selectedCourse) {
     const status = getCourseStatus(selectedCourse);
@@ -158,9 +193,11 @@ export default function CoursesPage({ courses, availabilityError = "" }) {
                         </p>
                       </div>
                       <span
-                        className={`rounded border px-2.5 py-1 text-xs font-semibold ${assignment.isCompleted ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
+                        className={`rounded border px-2.5 py-1 text-xs font-semibold ${isAssignmentCompleted(selectedCourse, assignment) ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
                       >
-                        {assignment.isCompleted ? "Completed" : "Pending"}
+                        {isAssignmentCompleted(selectedCourse, assignment)
+                          ? "Completed"
+                          : "Pending"}
                       </span>
                     </summary>
                     {activeAssignment === index && (
@@ -169,21 +206,41 @@ export default function CoursesPage({ courses, availabilityError = "" }) {
                           <strong>Instructions:</strong> {assignment.details}
                         </p>
                         <button
+                          type="button"
                           onClick={() => {
-                            if (assignment.isCompleted) {
+                            if (
+                              isAssignmentCompleted(selectedCourse, assignment)
+                            ) {
                               alert(
                                 `Viewing submitted assignment: ${assignment.title}`,
                               );
                             } else {
-                              assignment.isCompleted = true;
-                              alert(
-                                `Submitted assignment: ${assignment.title}`,
-                              );
+                              try {
+                                setSubmissionState({
+                                  submissions: saveAssignmentSubmission({
+                                    studentId: userEmail || userName,
+                                    studentName: userName,
+                                    courseCode: selectedCourse["Course-Code"],
+                                    assignmentTitle: assignment.title,
+                                  }),
+                                  error: "",
+                                });
+                              } catch (error) {
+                                setSubmissionState((current) => ({
+                                  ...current,
+                                  error:
+                                    error instanceof Error
+                                      ? error.message
+                                      : "Unable to submit this assignment.",
+                                }));
+                              }
                             }
                           }}
-                          className="self-start rounded bg-indigo-600 px-3 py-1.5 font-medium text-white transition-colors hover:bg-indigo-700"
+                          className={`self-start rounded px-3 py-1.5 font-medium text-white transition-colors ${isAssignmentCompleted(selectedCourse, assignment) ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
                         >
-                          {assignment.isCompleted ? "View" : "Submit Assignment"}
+                          {isAssignmentCompleted(selectedCourse, assignment)
+                            ? "View"
+                            : "Submit Assignment"}
                         </button>
                       </div>
                     )}
@@ -191,6 +248,11 @@ export default function CoursesPage({ courses, availabilityError = "" }) {
                 ))}
               </div>
             </section>
+            {submissionState.error && (
+              <p role="alert" className="text-sm text-rose-600">
+                {submissionState.error}
+              </p>
+            )}
           </div>
 
           <aside className="flex w-full shrink-0 flex-col gap-3 rounded-xl border border-indigo-100 bg-slate-50 p-4 lg:w-72">
@@ -233,15 +295,48 @@ export default function CoursesPage({ courses, availabilityError = "" }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-slate-800">Available Courses</h2>
+      <h2 className="text-xl font-bold text-slate-800">
+        {viewMode === "joined" ? "My Courses" : "All Courses"}
+      </h2>
+      {submissionState.error && (
+        <p role="alert" className="text-sm text-rose-600">
+          {submissionState.error}
+        </p>
+      )}
+      {enrollmentError && (
+        <p role="alert" className="text-sm text-rose-600">
+          {enrollmentError}
+        </p>
+      )}
       {availabilityError && (
         <p role="alert" className="text-sm text-rose-600">
           {availabilityError}
         </p>
       )}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {viewMode === "joined" && courses.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+          <h3 className="font-semibold text-slate-900">
+            You haven’t joined any courses yet
+          </h3>
+          <p className="mt-1 text-sm text-slate-500">
+            Browse the course catalog and join a course to see it here.
+          </p>
+          <button
+            type="button"
+            onClick={onBrowseCourses}
+            className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+          >
+            Browse All Courses
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => {
           const status = getCourseStatus(course);
+          const isJoined = joinedCourseCodes.includes(course["Course-Code"]);
+          const completedCount = course.assignments.filter((assignment) =>
+            isAssignmentCompleted(course, assignment),
+          ).length;
           return (
             <article
               key={course["Course-Code"]}
@@ -275,23 +370,40 @@ export default function CoursesPage({ courses, availabilityError = "" }) {
                   <p>Duration: {course.Duration}</p>
                   <p>Time: {course.Time}</p>
                   <p>Start Date: {course["Start-date"]}</p>
+                  <p>
+                    Assignments completed: {completedCount} /{" "}
+                    {course.assignments.length}
+                  </p>
                 </div>
               </div>
-              <button
-                type="button"
-                disabled={course.enabled === false}
-                onClick={() => {
-                  setSelectedCourse(course);
-                  setActiveAssignment(null);
-                }}
-                className="mt-2 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-              >
-                {course.enabled === false ? "Course disabled" : "View Details"}
-              </button>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  disabled={course.enabled === false}
+                  onClick={() => {
+                    setSelectedCourse(course);
+                    setActiveAssignment(null);
+                  }}
+                  className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {course.enabled === false ? "Course disabled" : "View Details"}
+                </button>
+                {viewMode === "catalog" && (
+                  <button
+                    type="button"
+                    disabled={course.enabled === false || isJoined}
+                    onClick={() => onJoinCourse?.(course["Course-Code"])}
+                    className="flex-1 rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-500"
+                  >
+                    {isJoined ? "Joined" : "Join Course"}
+                  </button>
+                )}
+              </div>
             </article>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

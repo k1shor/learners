@@ -12,6 +12,32 @@ import TeacherPage from "../../../pages/teachers/TeacherPage";
 import { authenticateTeacher } from "../../../pages/teachers/teacherAccounts";
 import { coursesData } from "../../../pages/student/coursesData";
 import { getDisabledCourseCodes } from "../../../pages/student/courseAvailability";
+import {
+  getJoinedCourseCodes,
+  joinStudentToCourse,
+} from "../../../pages/student/studentEnrollments";
+
+const getStudentId = (email, name) =>
+  email.trim().toLowerCase() || name.trim().toLowerCase();
+
+const loadEnrollmentState = (studentId) => {
+  try {
+    return {
+      studentId,
+      courseCodes: getJoinedCourseCodes(studentId),
+      error: "",
+    };
+  } catch (error) {
+    return {
+      studentId,
+      courseCodes: [],
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to load your joined courses.",
+    };
+  }
+};
 
 export default function Layout({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,6 +74,17 @@ export default function Layout({ children }) {
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [enrollmentState, setEnrollmentState] = useState(() =>
+    loadEnrollmentState("john doe"),
+  );
+  const studentId = getStudentId(loginEmail, userName);
+  const isCurrentEnrollment = enrollmentState.studentId === studentId;
+  const joinedCourseCodes = isCurrentEnrollment
+    ? enrollmentState.courseCodes
+    : [];
+  const joinedCourses = availableCourses.filter((course) =>
+    joinedCourseCodes.includes(course["Course-Code"]),
+  );
 
   // Available courses dataset
 
@@ -89,6 +126,7 @@ export default function Layout({ children }) {
       return;
     }
 
+    let nextUserName = userName;
     if (loginEmail.trim()) {
       const emailName = loginEmail
         .split("@")[0]
@@ -97,12 +135,12 @@ export default function Layout({ children }) {
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(" ");
       const roleName = loginRole === "teacher" ? "Teacher" : "Student";
-      setUserName(
-        ["student", "teacher"].includes(emailName.toLowerCase())
-          ? roleName
-          : emailName,
-      );
+      nextUserName = ["student", "teacher"].includes(emailName.toLowerCase())
+        ? roleName
+        : emailName;
+      setUserName(nextUserName);
     }
+    setEnrollmentState(loadEnrollmentState(getStudentId(loginEmail, nextUserName)));
     setIsLoggedIn(true);
     setAuthModal(null);
     setLoginPassword("");
@@ -110,9 +148,13 @@ export default function Layout({ children }) {
 
   const handleSignupSubmit = (e) => {
     e.preventDefault();
-    if (signupName.trim()) {
-      setUserName(signupName);
-    }
+    const nextUserName = signupName.trim() || userName;
+    const studentEmail = signupEmail.trim().toLowerCase();
+    setUserName(nextUserName);
+    setLoginEmail(studentEmail);
+    setEnrollmentState(
+      loadEnrollmentState(getStudentId(studentEmail, nextUserName)),
+    );
     setLoginRole("student");
     setIsLoggedIn(true);
     setAuthModal(null);
@@ -124,6 +166,26 @@ export default function Layout({ children }) {
     setTeacherCourseCodes([]);
     setFiles([]);
     setLoginError("");
+    setLoginEmail("");
+  };
+
+  const handleJoinCourse = (courseCode) => {
+    try {
+      setEnrollmentState({
+        studentId,
+        courseCodes: joinStudentToCourse(studentId, courseCode),
+        error: "",
+      });
+    } catch (error) {
+      setEnrollmentState((current) => ({
+        studentId,
+        courseCodes: isCurrentEnrollment ? current.courseCodes : [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to join this course.",
+      }));
+    }
   };
 
   const handlePrepareCertificateDownload = (course) => {
@@ -157,15 +219,40 @@ export default function Layout({ children }) {
         return (
           <CoursesPage
             courses={studentCourses}
+            viewMode="catalog"
+            joinedCourseCodes={joinedCourseCodes}
+            onJoinCourse={handleJoinCourse}
+            enrollmentError={isCurrentEnrollment ? enrollmentState.error : ""}
+            userName={userName}
+            userEmail={loginEmail}
             availabilityError={courseAccess.error}
           />
         );
+      case "myCourses":
+        return (
+          <CoursesPage
+            courses={joinedCourses}
+            viewMode="joined"
+            joinedCourseCodes={joinedCourseCodes}
+            userName={userName}
+            userEmail={loginEmail}
+            enrollmentError={isCurrentEnrollment ? enrollmentState.error : ""}
+            availabilityError={courseAccess.error}
+            onBrowseCourses={() => setActiveTab("courses")}
+          />
+        );
       case "tasks":
-        return <TasksPage courses={availableCourses} />;
+        return (
+          <TasksPage
+            courses={joinedCourses}
+            userName={userName}
+            userEmail={loginEmail}
+          />
+        );
       case "certificates":
         return (
           <CertificatesPage
-            courses={availableCourses}
+            courses={joinedCourses}
             userName={userName}
             onPrepareDownload={handlePrepareCertificateDownload}
           />
@@ -193,19 +280,19 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="app-frame w-screen h-screen flex flex-col border-4 border-indigo-200 box-border overflow-hidden bg-slate-50 relative">
+    <div className="app-frame relative flex h-screen w-full flex-col overflow-hidden bg-slate-50">
       <Header
         isLoggedIn={isLoggedIn}
         onLoginClick={handleOpenLogin}
         onSignupClick={handleOpenSignup}
         onLogoutClick={handleLogout}
         onMyCourseClick={() => {
-          setActiveTab("courses");
+          setActiveTab("myCourses");
           setTabVersion((version) => version + 1);
         }}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="app-workspace flex flex-1 overflow-hidden md:flex-row">
         {isLoggedIn && (
           <Sidebar
             userName={userName}
@@ -218,55 +305,106 @@ export default function Layout({ children }) {
           />
         )}
 
-        <main className="flex-1 p-6 overflow-y-auto flex flex-col gap-6">
+        <main className="flex min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:gap-6 sm:p-6 lg:p-8">
           {isLoggedIn ? (
             <div className="flex flex-col flex-1 gap-6 min-h-full">
-              {/* Top Greeting Bar */}
-              <div className="bg-white p-6 rounded-xl border border-indigo-100 shadow-sm flex items-center justify-between shrink-0">
+              <div className="flex shrink-0 items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-800">
-                    Welcome, {userName}!
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-600">
+                    Your learning space
+                  </p>
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-[28px]">
+                    Welcome back, {userName}
                   </h1>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="mt-1 text-sm text-slate-500">
                     Here is what's happening with your learning journey today.
                   </p>
                 </div>
+                <div className="hidden h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 sm:flex">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-6 w-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3 14.8 8.7 21 9.6l-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z" />
+                  </svg>
+                </div>
               </div>
 
-              {/* Dynamic Content Area */}
-              <div className="app-content-panel bg-white p-6 rounded-xl border border-indigo-100 shadow-sm flex flex-col flex-1">
+              <div className="app-content-panel flex flex-1 flex-col rounded-2xl border bg-white p-4 sm:p-6">
                 <div key={tabVersion} className="flex flex-1 flex-col">
                   {renderTabContent()}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 py-12">
-              <div className="flex flex-col items-center gap-2 max-w-md">
-                <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
-                  Welcome to E-learners Hub
-                </h1>
-                <p className="text-slate-500 text-sm">
-                  Please log in or create an account using the buttons above to
-                  explore your courses, manage tasks, and view earned
-                  certificates.
-                </p>
+              <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-6 py-6 sm:gap-8 sm:py-10">
+                <section className="welcome-hero relative isolate overflow-hidden rounded-[2rem] px-6 py-10 text-white sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+                  <div aria-hidden="true" className="welcome-decoration absolute -right-20 -top-24 -z-10 h-80 w-80 rounded-full border-[34px] border-white/10" />
+                  <div aria-hidden="true" className="absolute -bottom-28 right-1/4 -z-10 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl" />
+                  <div className="relative max-w-2xl">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-indigo-50 backdrop-blur">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                      YOUR NEXT CHAPTER STARTS HERE
+                    </span>
+                    <h1 className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+                      Learn at your pace.
+                      <span className="mt-1 block text-indigo-200">Grow on your terms.</span>
+                    </h1>
+                    <p className="mt-5 max-w-xl text-sm leading-6 text-indigo-100 sm:text-base sm:leading-7">
+                      Build practical skills with expert-led courses, stay on top of your assignments, and celebrate every milestone along the way.
+                    </p>
+                    <div className="mt-8 flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={handleOpenSignup}
+                        className="cursor-pointer rounded-xl bg-white px-5 py-3 text-sm font-bold text-indigo-800 shadow-lg shadow-indigo-950/15 transition hover:-translate-y-0.5 hover:bg-indigo-50"
+                      >
+                        Get started
+                        <span aria-hidden="true" className="ml-2">→</span>
+                      </button>
+                      <button
+                        onClick={handleOpenLogin}
+                        className="cursor-pointer rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+                      >
+                        Log in to your account
+                      </button>
+                    </div>
+                    <div className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-indigo-100">
+                      <span className="flex items-center gap-2"><span className="text-emerald-300">✓</span> Learn from anywhere</span>
+                      <span className="flex items-center gap-2"><span className="text-emerald-300">✓</span> Track your progress</span>
+                      <span className="flex items-center gap-2"><span className="text-emerald-300">✓</span> Earn certificates</span>
+                    </div>
+                  </div>
+                  <div aria-hidden="true" className="absolute bottom-8 right-10 hidden w-64 rotate-2 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-md lg:block">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-indigo-100">A little progress, every day</span>
+                      <span className="text-lg">✦</span>
+                    </div>
+                    <div className="mt-5 flex items-end gap-2">
+                      <span className="h-8 flex-1 rounded-t-md bg-white/35" />
+                      <span className="h-12 flex-1 rounded-t-md bg-white/45" />
+                      <span className="h-10 flex-1 rounded-t-md bg-white/35" />
+                      <span className="h-16 flex-1 rounded-t-md bg-white/70" />
+                      <span className="h-20 flex-1 rounded-t-md bg-white" />
+                    </div>
+                    <div className="mt-2 flex justify-between text-[10px] text-indigo-100">
+                      <span>START</span>
+                      <span>KEEP GOING</span>
+                      <span>ACHIEVE</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section aria-label="Platform benefits" className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    { number: "01", title: "Learn something new", detail: "Explore structured courses built to help you grow." },
+                    { number: "02", title: "Stay on track", detail: "Keep lessons and assignments organized in one place." },
+                    { number: "03", title: "Celebrate progress", detail: "See your achievements and save your certificates." },
+                  ].map((item) => (
+                    <article key={item.number} className="border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+                      <span className="text-xs font-bold tracking-[0.14em] text-indigo-500">{item.number}</span>
+                      <h2 className="mt-3 text-base font-bold text-slate-900">{item.title}</h2>
+                      <p className="mt-1.5 text-sm leading-6 text-slate-500">{item.detail}</p>
+                    </article>
+                  ))}
+                </section>
               </div>
-              <div className="flex items-center gap-3 mt-2">
-                <button
-                  onClick={handleOpenLogin}
-                  className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm"
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={handleOpenSignup}
-                  className="py-2.5 px-6 bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 font-medium rounded-lg text-sm transition-colors cursor-pointer shadow-sm"
-                >
-                  Sign Up
-                </button>
-              </div>
-            </div>
           )}
         </main>
       </div>
