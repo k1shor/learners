@@ -1,24 +1,82 @@
-# React + Vite
+# E-LearnersHub
 
-## Admin student management
+A React, Vite, Express, and SQLite learning platform for courses, tasks, certificates, payments, referrals, and administration.
 
-During local development, the admin panel opens directly at `/admin/students` without a key. The development API listens only on localhost. In production, the panel requires a private random `ADMIN_API_KEY` of at least 32 characters. Disabled users cannot sign in and their existing sessions are revoked.
+## Features
 
-Configure `ADMIN_API_KEY` only for production and never use a short or guessable value there.
+- Learner registration, sign-in, session restoration, logout, and password recovery
+- Course catalog, course details, task progress, certificates, payments, and referrals
+- Student, instructor, course, and class administration
+- SQLite persistence with WAL mode
+- Development and production API security, session cookies, and password hashing
 
-The instructor directory is at `/admin/instructors`. It contains the five course instructors plus five Nepali demo instructors, lists assigned courses and status, supports profile detail views, and lets admins edit an instructor's name, email, and bio or disable/re-enable the profile. Saved names are reflected on course cards, course details, tasks, and certificates. Run `node server/seed-demo-instructors.js` to add the demo instructor records to an existing local database.
+## Local setup
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+1. Install dependencies:
 
-Currently, two official plugins are available:
+   ```powershell
+   npm install
+   ```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+2. Copy `.env.example` to `.env`.
+3. Leave `ADMIN_API_KEY` empty while running locally.
+4. Start the frontend and API:
 
-## React Compiler
+   ```powershell
+   npm run dev
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+   Open `http://localhost:5173`. The API runs on `http://127.0.0.1:3001`.
 
-## Expanding the ESLint configuration
+## Authentication
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Signup: `/signup`
+- Sign-in: `/login`
+- Forgot password: `/forgot-password`
+- Reset password: `/reset-password?token=<token>`
+
+Local password recovery creates a development-only reset link in the UI and server console. Production requires SMTP settings and `NODE_ENV=production`.
+
+## Demo data
+
+The demo student and instructor scripts are optional and intended for local development:
+
+```powershell
+node server/seed-demo-students.js
+node server/seed-demo-instructors.js
+```
+
+Demo student passwords are randomly generated and are not documented as reusable accounts. Create a normal account through `/signup` for authentication testing.
+
+## Database
+
+The default SQLite database is stored in `server/data/learners.sqlite`. Set `DATABASE_PATH` to use a different location. In production, use persistent storage so database files survive deployment restarts.
+
+## Quality checks
+
+```powershell
+npm run lint
+npm run build
+```
+
+## Production configuration
+
+Set these values in the deployment environment:
+
+```dotenv
+NODE_ENV=production
+PORT=3001
+APP_BASE_URL=https://your-domain.example
+ADMIN_API_KEY=<random-key-at-least-32-characters>
+DATABASE_PATH=<persistent-database-path>
+SMTP_HOST=<smtp-host>
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=<smtp-user>
+SMTP_PASS=<smtp-password>
+SMTP_FROM=<from-address>
+```
+
+Never commit `.env` or a real admin key.
+
+For the complete ordered completion checklist, see `STEP_BY_STEP_GUIDE.md`.

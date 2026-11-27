@@ -2,7 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import CertificatesPage from "./pages/CertificatesPage";
 import CourseDetails from "./pages/CourseDetails";
 import Homepage from "./pages/Homepage";
-import SectionPage from "./pages/SectionPage";
+import PaymentsPage from "./pages/PaymentsPage";
+import ReferralsPage from "./pages/ReferralsPage";
 import TasksPage from "./pages/TasksPage";
 import Layout from "./components/layout/Layout";
 import AdminStudentsPage from "./admin/AdminStudentsPage";
@@ -22,8 +23,8 @@ const MyRoutes = () => {
           />
           <Route path="tasks" element={<TasksPage />} />
           <Route path="certificates" element={<CertificatesPage />} />
-          <Route path="referrals" element={<SectionPage title="Referrals" />} />
-          <Route path="payments" element={<SectionPage title="Payments" />} />
+          <Route path="referrals" element={<ReferralsPage />} />
+          <Route path="payments" element={<PaymentsPage />} />
           <Route path="admin/students" element={<AdminStudentsPage />} />
           <Route path="admin/instructors" element={<AdminInstructorsPage />} />
           <Route path="admin/courses" element={<AdminCoursesPage />} />

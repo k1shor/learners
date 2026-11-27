@@ -8,14 +8,9 @@ const navigationItems = [
   { label: "Payments", to: "/payments" },
 ];
 
-const LearnerSidebar = ({ user }) => {
-  const learnerName = user?.name ?? "Learner";
-  const initials = learnerName
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+const LearnerSidebar = () => {
+  const learnerName = "Learner";
+  const initials = "LR";
 
   return (
     <aside className="app-sidebar w-full shrink-0 border-b px-4 py-4 sm:w-60 sm:border-b-0 sm:border-r sm:px-5 sm:py-7">
@@ -27,7 +22,9 @@ const LearnerSidebar = ({ user }) => {
         <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#c9d8ae] bg-[#d9ef79] text-sm font-extrabold text-[#173c35] shadow-sm sm:size-[68px] sm:rounded-[22px]">
           {initials}
           <img
-            src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(learnerName)}&skinColor=ae5d29,c68642,edb98a&backgroundColor=b6e3f4,c0aede,d1d4f9`}
+            src={`https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(
+              learnerName,
+            )}&skinColor=ae5d29,c68642,edb98a&backgroundColor=b6e3f4,c0aede,d1d4f9`}
             alt=""
             loading="lazy"
             onError={(event) => {

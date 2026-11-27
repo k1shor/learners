@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --kill-others --names api,web \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "node server/index.js",
+    "dev:client": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
