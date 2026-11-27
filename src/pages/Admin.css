@@ -466,15 +466,18 @@
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 20px;
+  padding: 16px;
   background: rgb(25 29 47 / 42%);
   backdrop-filter: blur(3px);
 }
 
 .admin-record-modal {
+  display: flex;
   width: min(520px, 100%);
-  max-height: min(82vh, 720px);
-  overflow: auto;
+  max-height: min(calc(100vh - 32px), 720px);
+  max-height: min(calc(100dvh - 32px), 720px);
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid #e8e5f2;
   border-radius: 18px;
   background: #fff;
@@ -483,6 +486,7 @@
 
 .admin-modal-header {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
@@ -520,8 +524,12 @@
 .admin-record-details,
 .admin-record-form {
   display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
   gap: 14px;
   margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 20px 22px 22px;
 }
 
@@ -747,5 +755,49 @@
   .admin-table td {
     padding-right: 12px;
     padding-left: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-modal-backdrop {
+    padding: 12px;
+  }
+
+  .admin-record-modal {
+    width: 100%;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+
+  .admin-modal-header {
+    position: relative;
+    gap: 8px;
+    padding: 16px 52px 14px 16px;
+  }
+
+  .admin-modal-header h2 {
+    font-size: 0.96rem;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .admin-record-details,
+  .admin-record-form {
+    padding: 16px;
+  }
+
+  .admin-record-details > div:not(.admin-modal-actions) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-bottom: 10px;
+  }
+
+  .admin-record-details dd {
+    overflow-wrap: anywhere;
   }
 }

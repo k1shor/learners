@@ -1,22 +1,24 @@
 import { Link } from 'react-router-dom'
 import './Homepage.css'
 
-const Homepage = () => {
+const Homepage = ({ isAuthenticated }) => {
   return (
     <section className="home-page">
       <div className="home-hero">
         <p className="home-eyebrow">E-LEARNERS HUB</p>
-        <h1>Learning starts here.</h1>
+        <h1>A learning hub, ready to explore.</h1>
         <p className="home-intro">
-          Explore your courses or manage the learning hub from a dedicated admin workspace.
+          Preview what the platform offers. Log in to open the full learner dashboard and admin workspace.
         </p>
         <div className="home-actions">
-          <Link className="home-action home-action-primary" to="/dashboard">
-            Open dashboard <span aria-hidden="true">→</span>
+          <Link className="home-action home-action-primary" to="/demo">
+            Explore demo <span aria-hidden="true">→</span>
           </Link>
-          <Link className="home-action home-action-secondary" to="/admin">
-            Open admin <span aria-hidden="true">→</span>
-          </Link>
+          {isAuthenticated && (
+            <Link className="home-action home-action-secondary" to="/dashboard">
+              Open dashboard <span aria-hidden="true">→</span>
+            </Link>
+          )}
         </div>
       </div>
       <div className="home-features" aria-label="Platform areas">

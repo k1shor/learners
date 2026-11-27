@@ -2,6 +2,15 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+  --page-ink: #202a42;
+  --page-muted: #737d91;
+  --page-accent: #6558c8;
+  --page-paper: #fffefa;
+  --page-line: #e9e5dd;
+}
+
 html,
 body,
 #root {
@@ -13,11 +22,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   font-family: Inter, "Aptos", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #18233b;
+  color: var(--page-ink);
   background:
-    radial-gradient(ellipse at 88% 8%, rgb(222 232 255 / 46%), transparent 30rem),
-    radial-gradient(ellipse at 8% 88%, rgb(255 232 222 / 28%), transparent 28rem),
-    #f7f8fc;
+    radial-gradient(ellipse at 94% 7%, rgb(228 222 255 / 38%), transparent 29rem),
+    radial-gradient(ellipse at 2% 92%, rgb(247 229 206 / 34%), transparent 30rem),
+    #f8f7f3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -26,7 +35,459 @@ button {
   font: inherit;
 }
 
+img,
+svg {
+  max-width: 100%;
+}
+
 ::selection {
   color: #fff;
-  background: #6457d9;
+  background: var(--page-accent);
+}
+
+:root[data-theme="warm"] {
+  color-scheme: light;
+  --page-ink: #3e3328;
+  --page-muted: #786b5d;
+  --page-paper: #fff8eb;
+  --page-line: #e8dcc8;
+}
+
+:root[data-theme="warm"] body {
+  color: var(--page-ink);
+  background:
+    radial-gradient(ellipse at 94% 7%, rgb(245 224 188 / 38%), transparent 29rem),
+    radial-gradient(ellipse at 2% 92%, rgb(243 216 185 / 38%), transparent 30rem),
+    #f6f0e5;
+}
+
+:root[data-theme="warm"] .site-header {
+  border-bottom-color: #e8dcc8;
+  background: rgb(255 249 237 / 94%);
+}
+
+:root[data-theme="warm"] :is(.account-menu-trigger, .account-menu-panel) {
+  border-color: #e8dcc8;
+  background: #fff8eb;
+}
+
+:root[data-theme="warm"] .account-switcher {
+  border-bottom-color: #e8dcc8;
+}
+
+:root[data-theme="warm"] .account-profile {
+  border-bottom-color: #e8dcc8;
+}
+
+:root[data-theme="warm"] :is(
+  .dashboard,
+  .dashboard-sidebar,
+  .admin-sidebar,
+  .admin-panel,
+  .admin-metric-card,
+  .task-group,
+  .certificate-card,
+  .referral-card,
+  .payment-panel,
+  .payment-summary-card,
+  .payment-invoice,
+  .course-card,
+  .course-detail-panel,
+  .course-resource-section,
+  .participants-panel,
+  .syllabus-item,
+  .resource-item,
+  .home-hero,
+  .home-features article,
+  .signup-card,
+  .demo-explainer,
+  .demo-empty-state,
+  .admin-record-modal,
+  .profile-editor-card
+) {
+  border-color: #e8dcc8;
+  background: #fff8eb;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page-ink: #e6e8f0;
+  --page-muted: #b0b6c8;
+  --page-paper: #202432;
+  --page-line: #3a4052;
+}
+
+:root[data-theme="dark"] body {
+  color: var(--page-ink);
+  background:
+    radial-gradient(ellipse at 94% 7%, rgb(76 65 126 / 18%), transparent 29rem),
+    radial-gradient(ellipse at 2% 92%, rgb(102 74 53 / 14%), transparent 30rem),
+    #171a24;
+}
+
+:root[data-theme="dark"] .site-header {
+  border-bottom-color: #3a4052;
+  background: rgb(30 34 47 / 95%);
+}
+
+:root[data-theme="dark"] .site-brand,
+:root[data-theme="dark"] .theme-control {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .theme-control {
+  border-color: #454b5e;
+  background: #292e3e;
+}
+
+:root[data-theme="dark"] .theme-control select {
+  color: #f0f1f5;
+}
+
+:root[data-theme="dark"] .account-menu-trigger {
+  border-color: #454b5e;
+  color: #e6e8f0;
+  background: #292e3e;
+}
+
+:root[data-theme="dark"] .account-menu[open] .account-menu-trigger,
+:root[data-theme="dark"] .account-menu-trigger:hover {
+  border-color: #6a629d;
+  color: #d7d1ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .account-menu-panel {
+  border-color: #454b5e;
+  background: #242938;
+}
+
+:root[data-theme="dark"] .account-profile {
+  border-bottom-color: #3a4052;
+}
+
+:root[data-theme="dark"] .account-profile-copy strong,
+:root[data-theme="dark"] .account-profile-copy > span {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .account-profile-copy small {
+  color: #b0b6c8;
+}
+
+:root[data-theme="dark"] .account-menu .theme-control select {
+  border-color: #4a5062;
+  color: #e6e8f0;
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] .account-switcher {
+  border-bottom-color: #3a4052;
+}
+
+:root[data-theme="dark"] .account-switcher h2,
+:root[data-theme="dark"] .account-option span {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .account-option {
+  border-color: #454b5e;
+  color: #e6e8f0;
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] .account-option:hover:not(:disabled) {
+  border-color: #6a629d;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .account-option:disabled {
+  border-color: #454b5e;
+  color: #d3d6e0;
+  background: #303547;
+}
+
+:root[data-theme="dark"] .account-option small,
+:root[data-theme="dark"] .account-list-empty {
+  color: #b0b6c8;
+}
+
+:root[data-theme="dark"] :is(
+  .dashboard,
+  .dashboard-sidebar,
+  .admin-sidebar,
+  .admin-panel,
+  .admin-metric-card,
+  .task-group,
+  .certificate-card,
+  .referral-card,
+  .payment-panel,
+  .payment-summary-card,
+  .payment-invoice,
+  .course-card,
+  .course-detail-panel,
+  .course-resource-section,
+  .participants-panel,
+  .syllabus-item,
+  .resource-item,
+  .home-hero,
+  .home-features article,
+  .signup-card,
+  .demo-explainer,
+  .demo-empty-state,
+  .admin-record-modal,
+  .profile-editor-card
+) {
+  border-color: #3a4052;
+  background: #242938;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 18%);
+}
+
+:root[data-theme="dark"] .site-main :is(
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li,
+  dt,
+  dd,
+  label,
+  span:not(:where(
+    .task-count,
+    .course-code,
+    .certificate-seal,
+    .course-detail-code,
+    .resource-type,
+    .participants-heading > span,
+    .participant-avatar,
+    .home-feature-mark,
+    .demo-profile-mark,
+    .demo-section-icon,
+    .demo-empty-icon,
+    .admin-metric-icon,
+    .admin-person-avatar,
+    .admin-status,
+    .payment-transaction-mark,
+    .referral-card-footer > span,
+    .admin-nav-count,
+    .referral-section-label
+  )),
+  .admin-person,
+  .demo-profile div,
+  .payment-transaction-copy
+) {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .site-main .payment-demo-notice {
+  border-color: #3a4052;
+  color: #e6e8f0;
+  background: #242938;
+}
+
+:root[data-theme="dark"] .site-main .payment-demo-notice p,
+:root[data-theme="dark"] .site-main .payment-demo-notice strong {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .site-main .payment-notice-icon {
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .site-main .payment-invoice-code {
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .site-main .payment-status.is-paid {
+  color: #a7e9ca;
+  background: #244137;
+}
+
+:root[data-theme="dark"] .site-main .payment-status.is-due {
+  color: #ffd896;
+  background: #493820;
+}
+
+:root[data-theme="dark"] .site-main .payment-feedback {
+  border-color: #345e4c;
+  color: #a7e9ca;
+  background: #244137;
+}
+
+:root[data-theme="dark"] .site-main :is(.course-code, .course-topic-list li) {
+  color: color-mix(in srgb, var(--card-accent) 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .task-count {
+  color: color-mix(in srgb, var(--task-accent) 75%, black);
+}
+
+:root[data-theme="dark"] .site-main :is(.referral-mark, .referral-focus span) {
+  color: color-mix(in srgb, var(--referral-accent) 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .referral-card-header {
+  border-bottom-color: #3a4052;
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] .site-main .payment-transaction-mark {
+  color: color-mix(in srgb, #278467 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .admin-access-badge {
+  border-color: #454b5e;
+  color: #e6e8f0;
+  background: #292e3e;
+}
+
+:root[data-theme="dark"] .site-main :is(
+  .students-icon,
+  .admin-person-avatar
+) {
+  color: color-mix(in srgb, #6656c8 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .instructors-icon {
+  color: color-mix(in srgb, #218875 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .courses-icon {
+  color: color-mix(in srgb, #ba7b2c 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .schedules-icon {
+  color: color-mix(in srgb, #3775b3 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .admin-status {
+  color: color-mix(in srgb, #218875 75%, black);
+}
+
+:root[data-theme="dark"] .site-main .admin-status.is-disabled {
+  color: color-mix(in srgb, #a44c5a 75%, black);
+}
+
+:root[data-theme="dark"] .site-main :is(input, textarea, select) {
+  border-color: #4a5062;
+  color: #e6e8f0;
+  background-color: #1d2230;
+}
+
+:root[data-theme="dark"] .site-main :is(th, td) {
+  border-color: #3a4052;
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] .profile-links,
+:root[data-theme="dark"] .profile-link-row,
+:root[data-theme="dark"] .site-main .profile-picture-field {
+  border-color: #3a4052;
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] .site-main .profile-picture-details :is(h2, p) {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] :is(.profile-add-link, .profile-remove-link) {
+  border-color: #514d70;
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .profile-remove-link {
+  border-color: #654354;
+  color: #ffd2e0;
+  background: #3c2933;
+}
+
+:root[data-theme="dark"] .site-footer {
+  border-top-color: #3a4052;
+  background: #11141c;
+}
+
+:root[data-theme="dark"] .site-main :is(strong, small, summary, a, button) {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] :is(.sidebar-link, .admin-nav-link) {
+  color: #e6e8f0;
+}
+
+:root[data-theme="dark"] :is(.sidebar-link:hover, .sidebar-link.is-active, .admin-nav-link:hover, .admin-nav-link.is-active) {
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] :is(
+  .task-group-header,
+  .task-item,
+  .demo-explainer-header,
+  .demo-steps li,
+  .signup-notice,
+  .home-action-secondary,
+  .certificate-preview-dialog,
+  .certificate-preview-footer,
+  .certificate-preview-canvas
+) {
+  border-color: #3a4052;
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] :is(.task-course-link, .certificate-course-link) {
+  border-color: #514d70;
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] :is(
+  .admin-row-actions button,
+  .admin-modal-close,
+  .admin-modal-secondary,
+  .certificate-download-button,
+  .certificate-preview-button,
+  .certificate-preview-cancel
+) {
+  border-color: #454b5e;
+  background: #292e3e;
+}
+
+:root[data-theme="dark"] .course-detail-code {
+  border-color: #514d70;
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] :is(.syllabus-module-number, .syllabus-chevron) {
+  color: #c9c1ff;
+}
+
+:root[data-theme="dark"] :is(.admin-table th, .admin-table tbody tr:hover) {
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] :is(.admin-nav-count, .referral-section-label, .referral-card-footer > span) {
+  color: #c9c1ff;
+}
+
+:root[data-theme="dark"] .referral-invite {
+  background: #1d2230;
+}
+
+:root[data-theme="dark"] .referral-card-footer > a {
+  border-color: #514d70;
+  color: #ddd8ff;
+  background: #353146;
+}
+
+:root[data-theme="dark"] .certificate-seal {
+  color: #80560e;
+}
+
+:root[data-theme="dark"] .site-main .certificate-print-sheet :is(h1, h2, h3, h4, p, li, dt, dd, label, strong, small, summary, a, button) {
+  color: #24263b;
 }

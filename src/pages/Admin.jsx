@@ -338,6 +338,7 @@ const Admin = () => {
                         <td><span className="admin-course-cell"><strong>{course.title}</strong><small>{course.course_code}</small></span></td>
                         <td>{course.instructor}</td>
                         <td>{course.duration}</td>
+                        <td>{formatStartDate(course.start_date)}</td>
                         <td>{renderActions(course, 'Classes')}</td>
                       </tr>
                     ))}
